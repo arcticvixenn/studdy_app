@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Movies",
-    "slug": "Movies",
+    "name": "Clipzy",
+    "slug": "Clipzy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "Clipzy",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -19,7 +19,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+        
+      },
+      "supportsTablet": true,
+      "package": "com.lnu.clipzy"
     },
     "web": {
       "bundler": "metro",
