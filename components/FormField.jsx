@@ -1,11 +1,26 @@
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+import React, { useState } from 'react';
 
-import { icons } from '../constants'
+import { icons } from '../constants';
 
-const FormField = ({ title, value, placeholder, handleChangeText, otherStyles, ...props }) => {
-  const [showPassword, setShowPassword] = useState(false)
-  const [isFocused, setIsFocused] = useState(false)
+const FormField = ({
+  title,
+  value,
+  placeholder,
+  handleChangeText,
+  otherStyles = '',
+  ...props
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const isPasswordField = title === 'Password';
 
   return (
     <View className={`space-y-2 ${otherStyles}`}>
@@ -22,19 +37,24 @@ const FormField = ({ title, value, placeholder, handleChangeText, otherStyles, .
           placeholder={placeholder}
           placeholderTextColor="#7b7b8b"
           onChangeText={handleChangeText}
-          secureTextEntry={title === 'Password' && !showPassword}
+          secureTextEntry={isPasswordField && !showPassword}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          {...props}
         />
 
-        {title === 'Password' && (
+        {isPasswordField && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Image source={!showPassword ? icons.eye : icons.eyehide} className="w-6 h-6" resizeMode="contain" />
+            <Image
+              source={!showPassword ? icons.eye : icons.eyeHide}
+              className="w-6 h-6"
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         )}
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default FormField
+export default FormField;

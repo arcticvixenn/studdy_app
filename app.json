@@ -1,33 +1,32 @@
 {
   "expo": {
-    "name": "Clipzy",
-    "slug": "Clipzy",
+    "name": "Studdy",
+    "slug": "studdy",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "Clipzy",
+    "icon": "./assets/icon.png",
+    "scheme": "studdy",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#161622"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-        
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#161622"
       },
       "supportsTablet": true,
-      "package": "com.lnu.clipzy"
+      "package": "com.lnu.studdy"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router"

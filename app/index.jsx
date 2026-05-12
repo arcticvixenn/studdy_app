@@ -1,16 +1,18 @@
-import { Image, ScrollView, Text, View } from "react-native";
+import { Image, ScrollView, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Redirect, router } from "expo-router";
-import { Link } from 'expo-router';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Redirect, router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { images } from '../constants';
-import CustomButton from '../components/CustomButton'; // Виправлений шлях до компонента
-import { useGlobalContext } from "../context/GlobalProvider";
+import CustomButton from '../components/CustomButton';
+import { useGlobalContext } from '../context/GlobalProvider';
 
 export default function Index() {
-const {isLoading, isLoggedIn} = useGlobalContext();
+  const { isLoading, isLoggedIn } = useGlobalContext();
 
-if(!isLoading && isLoggedIn) return <Redirect href="/home" />
+  if (!isLoading && isLoggedIn) {
+    return <Redirect href="/home" />;
+  }
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -30,8 +32,8 @@ if(!isLoading && isLoggedIn) return <Redirect href="/home" />
 
           <View className="relative mt-5">
             <Text className="text-3xl text-white font-bold text-center">
-              Досліджуй безкінечні можливості{' '}
-              <Text className="text-secondary-200">Aora</Text>
+              Навчайся, спілкуйся та розвивайся разом із{' '}
+              <Text className="text-secondary-200">Studdy</Text>
             </Text>
 
             <Image
@@ -42,20 +44,18 @@ if(!isLoading && isLoggedIn) return <Redirect href="/home" />
           </View>
 
           <Text className="text-sm font-pregular text-gray-100 mt-7 text-center">
-            Where creativity meets innovation: embark on a journey of limitless exploration
-            with Aora
+            Освітня соціальна платформа з інтерактивним навчанням,
+            персональними рекомендаціями та майбутнім ML-аналізом прогресу.
           </Text>
 
-          <CustomButton 
-          title="Continue with Email"
-          handlePress={() => router.push('./sign-in')}
-          containerStyles="w-full mt-7"
-          /> 
-            
-          
-
+          <CustomButton
+            title="Продовжити через Email"
+            handlePress={() => router.push('./sign-in')}
+            containerStyles="w-full mt-7"
+          />
         </View>
       </ScrollView>
+
       <StatusBar backgroundColor="#161622" style="light" />
     </SafeAreaView>
   );
