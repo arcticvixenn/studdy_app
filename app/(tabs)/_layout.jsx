@@ -14,7 +14,7 @@ const TabIcon = ({ icon, color, name, focused }) => {
       />
 
       <Text
-        className={`${focused ? 'font-psemibold' : 'font-pregular'} text-xs`}
+        className={`${focused ? 'font-psemibold' : 'font-pregular'} text-[11px]`}
         style={{ color }}
       >
         {name}
@@ -41,13 +41,29 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: 'Головна',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               icon={icons.home}
               color={color}
-              name="Home"
+              name="Головна"
+              focused={focused}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="learn"
+        options={{
+          title: 'Навчання',
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              icon={icons.bookmark}
+              color={color}
+              name="Навчання"
               focused={focused}
             />
           ),
@@ -57,13 +73,13 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'Create',
+          title: 'Створити',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               icon={icons.plus}
               color={color}
-              name="Create"
+              name="Створити"
               focused={focused}
             />
           ),
@@ -73,13 +89,13 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Профіль',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               icon={icons.profile}
               color={color}
-              name="Profile"
+              name="Профіль"
               focused={focused}
             />
           ),

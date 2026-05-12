@@ -20,7 +20,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#161622"
       },
-      "supportsTablet": true,
       "package": "com.lnu.studdy"
     },
     "web": {
