@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { ResizeMode, Video } from "expo-av";
-import * as Animatable from "react-native-animatable";
+import { useRef, useState } from 'react';
+import { ResizeMode, Video } from 'expo-av';
+import * as Animatable from 'react-native-animatable';
 import {
   FlatList,
   Image,
   ImageBackground,
   TouchableOpacity,
-} from "react-native";
+} from 'react-native';
 
-import { icons } from "../constants";
+import { icons } from '../constants';
 
 const zoomIn = {
   0: {
@@ -55,7 +55,6 @@ const TrendingItem = ({ activeItem, item }) => {
               setPlay(false);
             }
           }}
-          
         />
       ) : (
         <TouchableOpacity
@@ -82,14 +81,22 @@ const TrendingItem = ({ activeItem, item }) => {
   );
 };
 
-const Trending = ({ posts }) => {
-  const [activeItem, setActiveItem] = useState(posts[0]);
+const Trending = ({ posts = [] }) => {
+  const [activeItem, setActiveItem] = useState(posts[0]?.$id ?? null);
 
-  const viewableItemsChanged = ({ viewableItems }) => {
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 70,
+  }).current;
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
       setActiveItem(viewableItems[0].key);
     }
-  };
+  }).current;
+
+  if (!posts.length) {
+    return null;
+  }
 
   return (
     <FlatList
@@ -99,11 +106,10 @@ const Trending = ({ posts }) => {
       renderItem={({ item }) => (
         <TrendingItem activeItem={activeItem} item={item} />
       )}
-      onViewableItemsChanged={viewableItemsChanged}
-      viewabilityConfig={{
-        itemVisiblePercentThreshold: 70,
-      }}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={viewabilityConfig}
       contentOffset={{ x: 170 }}
+      showsHorizontalScrollIndicator={false}
     />
   );
 };
