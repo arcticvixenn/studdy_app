@@ -1,15 +1,14 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FlatList } from 'react-native';
 import { router } from 'expo-router';
 
 import { icons } from '../../constants';
 import EmptyState from '../../components/EmptyState';
+import PostCard from '../../components/PostCard';
+import InfoBox from '../../components/InfoBox';
 import { getUserPosts, signOut } from '../../lib/appwrite';
 import useAppwrite from '../../lib/useAppwrite';
-import VideoCard from '../../components/VideoCard';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import InfoBox from '../../components/InfoBox';
 
 const Profile = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
@@ -34,9 +33,9 @@ const Profile = () => {
       <FlatList
         data={posts ?? []}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <VideoCard video={item} />}
+        renderItem={({ item }) => <PostCard post={item} />}
         ListHeaderComponent={() => (
-          <View className="w-full justify-center items-center mt-6 mb-12 px-4">
+          <View className="w-full justify-center items-center mt-6 mb-8 px-4">
             <TouchableOpacity
               className="w-full items-end mb-10"
               onPress={logout}
@@ -49,11 +48,13 @@ const Profile = () => {
             </TouchableOpacity>
 
             <View className="w-20 h-20 border border-secondary rounded-2xl justify-center items-center">
-              <Image
-                source={{ uri: user?.avatar }}
-                className="w-[92%] h-[92%] rounded-2xl"
-                resizeMode="cover"
-              />
+              {user?.avatar ? (
+                <Image
+                  source={{ uri: user.avatar }}
+                  className="w-[92%] h-[92%] rounded-2xl"
+                  resizeMode="cover"
+                />
+              ) : null}
             </View>
 
             <InfoBox
@@ -84,10 +85,14 @@ const Profile = () => {
               </Text>
 
               <Text className="text-gray-100 text-sm font-pregular leading-5">
-                Тут з’являться прогрес за темами, кількість пройдених тестів,
-                слабкі знання та персональні ML-рекомендації.
+                Тут з’являться рівень освоєння тем, кількість пройдених тестів,
+                слабкі місця та персональні ML-рекомендації.
               </Text>
             </View>
+
+            <Text className="w-full text-lg text-gray-100 font-pregular mt-8 mb-4">
+              Мої публікації
+            </Text>
           </View>
         )}
         ListEmptyComponent={() => (
@@ -96,6 +101,9 @@ const Profile = () => {
             subtitle="Створи перший допис і почни формувати свою навчальну активність."
           />
         )}
+        contentContainerStyle={{
+          paddingBottom: 24,
+        }}
       />
     </SafeAreaView>
   );
