@@ -15,6 +15,8 @@ import EmptyState from '../../components/EmptyState';
 import PostCard from '../../components/PostCard';
 import InfoBox from '../../components/InfoBox';
 import {
+  getFollowersCount,
+  getFollowingCount,
   getSavedPosts,
   getUserPosts,
   signOut,
@@ -26,6 +28,8 @@ const Profile = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
 
   const [activeTab, setActiveTab] = useState('posts');
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const {
     data: posts,
@@ -53,7 +57,12 @@ const Profile = () => {
     useCallback(() => {
       refetchPosts();
       refetchSavedPosts();
-    }, [])
+
+      if (user?.$id) {
+        getFollowersCount(user.$id).then(setFollowersCount);
+        getFollowingCount(user.$id).then(setFollowingCount);
+      }
+    }, [user?.$id])
   );
 
   const logout = async () => {
@@ -63,7 +72,8 @@ const Profile = () => {
     router.replace('/sign-in');
   };
 
-  const currentData = activeTab === 'posts' ? posts ?? [] : savedPosts ?? [];
+  const currentData =
+    activeTab === 'posts' ? posts ?? [] : savedPosts ?? [];
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -101,22 +111,30 @@ const Profile = () => {
               titleStyles="text-lg"
             />
 
-            <View className="mt-6 flex-row">
+            <View className="mt-6 flex-row flex-wrap justify-center">
               <InfoBox
                 title={(posts ?? []).length}
                 subtitle="Публікацій"
-                containerStyles="mr-10"
+                containerStyles="mr-6 mb-4"
                 titleStyles="text-xl"
               />
 
               <InfoBox
-                title={(savedPosts ?? []).length}
-                subtitle="Збережено"
+                title={followersCount}
+                subtitle="Підписників"
+                containerStyles="mr-6 mb-4"
+                titleStyles="text-xl"
+              />
+
+              <InfoBox
+                title={followingCount}
+                subtitle="Підписок"
+                containerStyles="mb-4"
                 titleStyles="text-xl"
               />
             </View>
 
-            <View className="w-full flex-row bg-black-100 border border-black-200 rounded-2xl p-1 mt-8">
+            <View className="w-full flex-row bg-black-100 border border-black-200 rounded-2xl p-1 mt-6">
               <TouchableOpacity
                 onPress={() => setActiveTab('posts')}
                 className={`flex-1 py-3 rounded-xl items-center ${

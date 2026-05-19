@@ -46,9 +46,7 @@ const PostCard = ({ post }) => {
         setLikesCount(likeState.likesCount);
         setIsLiked(likeState.isLiked);
         setLikeId(likeState.likeId);
-
         setCommentsCount(actualCommentsCount);
-
         setIsSaved(saveState.isSaved);
         setSaveId(saveState.saveId);
       }
@@ -102,9 +100,21 @@ const PostCard = ({ post }) => {
     }
   };
 
+  const openAuthorProfile = () => {
+    if (post.authorId === user?.$id) {
+      router.push('/profile');
+    } else {
+      router.push(`/user/${post.authorId}`);
+    }
+  };
+
   return (
     <View className="bg-black-100 border border-black-200 rounded-2xl mx-4 mb-5 p-4">
-      <View className="flex-row items-center mb-4">
+      <TouchableOpacity
+        onPress={openAuthorProfile}
+        activeOpacity={0.8}
+        className="flex-row items-center mb-4"
+      >
         <Image
           source={{ uri: post.authorAvatar }}
           className="w-11 h-11 rounded-xl mr-3"
@@ -120,7 +130,7 @@ const PostCard = ({ post }) => {
             {post.category}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       <TouchableOpacity
         activeOpacity={0.9}
@@ -177,9 +187,7 @@ const PostCard = ({ post }) => {
             </Text>
           )}
 
-          <Text className="text-gray-100 ml-2">
-            {likesCount}
-          </Text>
+          <Text className="text-gray-100 ml-2">{likesCount}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -187,9 +195,7 @@ const PostCard = ({ post }) => {
           activeOpacity={0.8}
           className="flex-row items-center mr-6"
         >
-          <Text className="text-gray-100">
-            💬 {commentsCount}
-          </Text>
+          <Text className="text-gray-100">💬 {commentsCount}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
