@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FlatList, Image, RefreshControl, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { images } from '../../constants';
 import SearchInput from '../../components/SearchInput';
@@ -15,6 +16,12 @@ const Home = () => {
   const { data: posts, refetch } = useAppwrite(getAllPosts);
 
   const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -39,37 +46,18 @@ const Home = () => {
                 <Text className="text-2xl font-psemibold text-white mt-1">
                   {user?.username || 'студенте'}
                 </Text>
-
-                <Text className="text-sm font-pregular text-gray-100 mt-3 leading-5">
-                  Читайте пояснення, ставте питання та діліться власними
-                  навчальними напрацюваннями.
-                </Text>
               </View>
 
-              <View className="mt-1.5">
-                <Image
-                  source={images.logoSmall}
-                  className="w-9 h-10"
-                  resizeMode="contain"
-                />
-              </View>
+              <Image
+                source={images.logoSmall}
+                className="w-9 h-10"
+                resizeMode="contain"
+              />
             </View>
 
             <SearchInput />
 
-            <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6 mb-6">
-              <Text className="text-white text-base font-psemibold mb-2">
-                Підготовка до персоналізації
-              </Text>
-
-              <Text className="text-gray-100 text-sm font-pregular leading-5">
-                Згодом цей блок буде наповнюватися рекомендаціями матеріалів,
-                темами для повторення та ML-підказками на основі навчальної
-                активності користувача.
-              </Text>
-            </View>
-
-            <Text className="text-lg text-gray-100 font-pregular mb-4">
+            <Text className="text-lg text-gray-100 font-pregular mt-6 mb-4">
               Освітня стрічка
             </Text>
           </View>
@@ -83,9 +71,7 @@ const Home = () => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        contentContainerStyle={{
-          paddingBottom: 24,
-        }}
+        contentContainerStyle={{ paddingBottom: 24 }}
       />
     </SafeAreaView>
   );

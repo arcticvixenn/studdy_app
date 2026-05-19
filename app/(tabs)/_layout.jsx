@@ -44,12 +44,18 @@ const TabsLayout = () => {
           title: 'Головна',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              icon={icons.home}
-              color={color}
-              name="Головна"
-              focused={focused}
-            />
+            <TabIcon icon={icons.home} color={color} name="Головна" focused={focused} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="videos"
+        options={{
+          title: 'Відео',
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon icon={icons.play} color={color} name="Відео" focused={focused} />
           ),
         }}
       />
@@ -60,12 +66,7 @@ const TabsLayout = () => {
           title: 'Навчання',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              icon={icons.bookmark}
-              color={color}
-              name="Навчання"
-              focused={focused}
-            />
+            <TabIcon icon={icons.bookmark} color={color} name="Навчання" focused={focused} />
           ),
         }}
       />
@@ -76,12 +77,7 @@ const TabsLayout = () => {
           title: 'Створити',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              icon={icons.plus}
-              color={color}
-              name="Створити"
-              focused={focused}
-            />
+            <TabIcon icon={icons.plus} color={color} name="Створити" focused={focused} />
           ),
         }}
       />
@@ -92,12 +88,7 @@ const TabsLayout = () => {
           title: 'Профіль',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              icon={icons.profile}
-              color={color}
-              name="Профіль"
-              focused={focused}
-            />
+            <TabIcon icon={icons.profile} color={color} name="Профіль" focused={focused} />
           ),
         }}
       />

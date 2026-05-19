@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  Image,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { createPost } from '../../lib/appwrite';
@@ -25,6 +25,12 @@ const categories = [
   'Самоорганізація',
 ];
 
+const types = [
+  { key: 'text', label: 'Текст' },
+  { key: 'image', label: 'Фото' },
+  { key: 'video', label: 'Відео' },
+];
+
 const Create = () => {
   const { user } = useGlobalContext();
 
@@ -33,69 +39,85 @@ const Create = () => {
     title: '',
     content: '',
     category: '',
+    mediaType: 'text',
     image: null,
+    video: null,
+    thumbnail: null,
   });
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 0.85,
+  const pickImage = async (field) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+      });
+
+      if (!result.canceled) {
+        setForm((prev) => ({
+          ...prev,
+          [field]: result.assets[0],
+        }));
+      }
+    } catch (error) {
+      console.log('pickImage error:', error);
+      Alert.alert('Помилка', 'Не вдалося обрати зображення.');
+    }
+  };
+
+  const pickVideo = async () => {
+  try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: 'video/*',
+      copyToCacheDirectory: true,
     });
 
     if (!result.canceled) {
+      const asset = result.assets[0];
+
+      const normalizedVideo = {
+        ...asset,
+        file: asset.file || result.output?.[0] || null,
+      };
+
       setForm((prev) => ({
         ...prev,
-        image: result.assets[0],
+        video: normalizedVideo,
       }));
     }
-  };
-
-  const removeImage = () => {
-    setForm((prev) => ({
-      ...prev,
-      image: null,
-    }));
-  };
+  } catch (error) {
+    console.log('pickVideo error:', error);
+    Alert.alert('Помилка', 'Не вдалося обрати відео.');
+  }
+};
 
   const submit = async () => {
-    if (!form.title.trim()) {
-      return Alert.alert('Помилка', 'Введіть заголовок публікації.');
+    if (!form.title.trim() || !form.content.trim() || !form.category) {
+      return Alert.alert('Помилка', 'Заповни заголовок, текст і категорію.');
     }
 
-    if (!form.content.trim()) {
-      return Alert.alert('Помилка', 'Напишіть основний текст публікації.');
+    if (form.mediaType === 'image' && !form.image) {
+      return Alert.alert('Помилка', 'Додай зображення.');
     }
 
-    if (!form.category) {
-      return Alert.alert('Помилка', 'Оберіть навчальну категорію.');
-    }
-
-    if (!user?.$id) {
-      return Alert.alert(
-        'Помилка',
-        'Не вдалося визначити поточного користувача.'
-      );
+    if (form.mediaType === 'video' && (!form.video || !form.thumbnail)) {
+      return Alert.alert('Помилка', 'Додай відео та обкладинку.');
     }
 
     setPublishing(true);
 
     try {
-      await createPost({
-        title: form.title,
-        content: form.content,
-        category: form.category,
-        image: form.image,
-        user,
-      });
+      await createPost({ ...form, user });
 
-      Alert.alert('Готово', 'Освітню публікацію успішно створено.');
+      Alert.alert('Готово', 'Публікацію створено.');
 
       setForm({
         title: '',
         content: '',
         category: '',
+        mediaType: 'text',
         image: null,
+        video: null,
+        thumbnail: null,
       });
 
       router.replace('/home');
@@ -108,132 +130,133 @@ const Create = () => {
 
   return (
     <SafeAreaView className="bg-primary h-full">
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 24,
-          paddingBottom: 36,
-        }}
-      >
+      <ScrollView className="px-4 pt-6">
         <Text className="text-3xl text-white font-psemibold">
-          Створити допис
+          Створити публікацію
         </Text>
 
-        <Text className="text-sm text-gray-100 font-pregular leading-5 mt-3 mb-8">
-          Поділіться поясненням, питанням, корисною нотаткою або навчальним
-          спостереженням. Так формується освітня спільнота Studdy.
-        </Text>
+        <View className="flex-row mt-6 mb-6">
+          {types.map((type) => (
+            <TouchableOpacity
+              key={type.key}
+              onPress={() =>
+                setForm((prev) => ({
+                  ...prev,
+                  mediaType: type.key,
+                  image: null,
+                  video: null,
+                  thumbnail: null,
+                }))
+              }
+              className={`mr-3 px-4 py-3 rounded-full border ${
+                form.mediaType === type.key
+                  ? 'bg-secondary border-secondary'
+                  : 'bg-black-100 border-black-200'
+              }`}
+            >
+              <Text
+                className={`font-pmedium ${
+                  form.mediaType === type.key
+                    ? 'text-primary'
+                    : 'text-gray-100'
+                }`}
+              >
+                {type.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         <FormField
           title="Заголовок"
           value={form.title}
-          placeholder="Наприклад: Просте пояснення градієнтного спуску"
+          placeholder="Наприклад: Як працює backpropagation"
           handleChangeText={(value) =>
-            setForm((prev) => ({
-              ...prev,
-              title: value,
-            }))
+            setForm((prev) => ({ ...prev, title: value }))
           }
           otherStyles="mb-6"
         />
 
         <FormField
-          title="Текст публікації"
+          title="Опис"
           value={form.content}
-          placeholder="Напишіть основну думку, пояснення або запитання..."
+          placeholder="Напиши коротке пояснення..."
           handleChangeText={(value) =>
-            setForm((prev) => ({
-              ...prev,
-              content: value,
-            }))
+            setForm((prev) => ({ ...prev, content: value }))
           }
           multiline
-          numberOfLines={7}
+          numberOfLines={6}
           otherStyles="mb-6"
         />
 
-        <View className="mb-6">
-          <Text className="text-base text-gray-100 font-pmedium mb-3">
-            Навчальна категорія
-          </Text>
+        <Text className="text-base text-gray-100 font-pmedium mb-3">
+          Категорія
+        </Text>
 
-          <View className="flex-row flex-wrap">
-            {categories.map((category) => {
-              const isActive = form.category === category;
-
-              return (
-                <TouchableOpacity
-                  key={category}
-                  activeOpacity={0.8}
-                  onPress={() =>
-                    setForm((prev) => ({
-                      ...prev,
-                      category,
-                    }))
-                  }
-                  className={`px-4 py-3 rounded-full mr-2 mb-3 border ${
-                    isActive
-                      ? 'bg-secondary border-secondary'
-                      : 'bg-black-100 border-black-200'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-pmedium ${
-                      isActive ? 'text-primary' : 'text-gray-100'
-                    }`}
-                  >
-                    {category}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        <View className="mb-8">
-          <Text className="text-base text-gray-100 font-pmedium mb-3">
-            Зображення до допису
-          </Text>
-
-          {form.image ? (
-            <View>
-              <Image
-                source={{ uri: form.image.uri }}
-                className="w-full h-56 rounded-2xl"
-                resizeMode="cover"
-              />
-
-              <TouchableOpacity
-                onPress={removeImage}
-                activeOpacity={0.8}
-                className="mt-3 self-start bg-black-100 border border-black-200 rounded-xl px-4 py-3"
-              >
-                <Text className="text-white text-sm font-pmedium">
-                  Прибрати зображення
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+        <View className="flex-row flex-wrap mb-6">
+          {categories.map((category) => (
             <TouchableOpacity
-              onPress={pickImage}
-              activeOpacity={0.8}
-              className="h-24 bg-black-100 border border-dashed border-black-200 rounded-2xl justify-center items-center"
+              key={category}
+              onPress={() =>
+                setForm((prev) => ({ ...prev, category }))
+              }
+              className={`mr-2 mb-3 px-4 py-3 rounded-full border ${
+                form.category === category
+                  ? 'bg-secondary border-secondary'
+                  : 'bg-black-100 border-black-200'
+              }`}
             >
-              <Text className="text-white text-sm font-pmedium">
-                Обрати зображення
-              </Text>
-
-              <Text className="text-gray-100 text-xs font-pregular mt-1">
-                Необов’язково
+              <Text
+                className={`text-sm font-pmedium ${
+                  form.category === category
+                    ? 'text-primary'
+                    : 'text-gray-100'
+                }`}
+              >
+                {category}
               </Text>
             </TouchableOpacity>
-          )}
+          ))}
         </View>
+
+        {form.mediaType === 'image' && (
+          <TouchableOpacity
+            onPress={() => pickImage('image')}
+            className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
+          >
+            <Text className="text-white font-pmedium">
+              {form.image ? 'Зображення обрано ✓' : 'Обрати зображення'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {form.mediaType === 'video' && (
+          <>
+            <TouchableOpacity
+              onPress={pickVideo}
+              className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-4"
+            >
+              <Text className="text-white font-pmedium">
+                {form.video ? 'Відео обрано ✓' : 'Обрати відео'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => pickImage('thumbnail')}
+              className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
+            >
+              <Text className="text-white font-pmedium">
+                {form.thumbnail ? 'Обкладинку обрано ✓' : 'Обрати обкладинку'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         <CustomButton
           title="Опублікувати"
           handlePress={submit}
           isLoading={publishing}
+          containerStyles="mb-10"
         />
       </ScrollView>
     </SafeAreaView>
