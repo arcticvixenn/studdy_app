@@ -6,18 +6,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
 
 import { icons } from '../constants';
 import { useGlobalContext } from '../context/GlobalProvider';
 import {
   getPostLikeState,
   togglePostLike,
+  getPostCommentsCount,
 } from '../lib/appwrite';
 
 const PostCard = ({ post }) => {
   const { user } = useGlobalContext();
 
   const [likesCount, setLikesCount] = useState(post.likesCount ?? 0);
+  const [commentsCount, setCommentsCount] = useState(post.commentsCount ?? 0);
   const [isLiked, setIsLiked] = useState(false);
   const [likeId, setLikeId] = useState(null);
   const [likeLoading, setLikeLoading] = useState(false);
@@ -25,17 +28,21 @@ const PostCard = ({ post }) => {
   useEffect(() => {
     let isMounted = true;
 
-    const loadLikeState = async () => {
-      const state = await getPostLikeState(post.$id, user?.$id);
+    const loadStates = async () => {
+      const [likeState, actualCommentsCount] = await Promise.all([
+        getPostLikeState(post.$id, user?.$id),
+        getPostCommentsCount(post.$id),
+      ]);
 
       if (isMounted) {
-        setLikesCount(state.likesCount);
-        setIsLiked(state.isLiked);
-        setLikeId(state.likeId);
+        setLikesCount(likeState.likesCount);
+        setIsLiked(likeState.isLiked);
+        setLikeId(likeState.likeId);
+        setCommentsCount(actualCommentsCount);
       }
     };
 
-    loadLikeState();
+    loadStates();
 
     return () => {
       isMounted = false;
@@ -58,8 +65,6 @@ const PostCard = ({ post }) => {
       setLikesCount(nextState.likesCount);
       setIsLiked(nextState.isLiked);
       setLikeId(nextState.likeId);
-    } catch (error) {
-      console.log('handleLike error:', error);
     } finally {
       setLikeLoading(false);
     }
@@ -85,37 +90,42 @@ const PostCard = ({ post }) => {
         </View>
       </View>
 
-      <Text className="text-white text-lg font-psemibold mb-2">
-        {post.title}
-      </Text>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => router.push(`/post/${post.$id}`)}
+      >
+        <Text className="text-white text-lg font-psemibold mb-2">
+          {post.title}
+        </Text>
 
-      <Text className="text-gray-100 text-sm leading-5">
-        {post.content}
-      </Text>
+        <Text className="text-gray-100 text-sm leading-5">
+          {post.content}
+        </Text>
 
-      {post.mediaType === 'image' && post.imageUrl && (
-        <Image
-          source={{ uri: post.imageUrl }}
-          className="w-full h-52 rounded-2xl mt-4"
-          resizeMode="cover"
-        />
-      )}
-
-      {post.mediaType === 'video' && post.thumbnailUrl && (
-        <View className="relative mt-4">
+        {post.mediaType === 'image' && post.imageUrl && (
           <Image
-            source={{ uri: post.thumbnailUrl }}
-            className="w-full h-52 rounded-2xl"
+            source={{ uri: post.imageUrl }}
+            className="w-full h-52 rounded-2xl mt-4"
             resizeMode="cover"
           />
+        )}
 
-          <Image
-            source={icons.play}
-            className="w-14 h-14 absolute self-center top-[78px]"
-            resizeMode="contain"
-          />
-        </View>
-      )}
+        {post.mediaType === 'video' && post.thumbnailUrl && (
+          <View className="relative mt-4">
+            <Image
+              source={{ uri: post.thumbnailUrl }}
+              className="w-full h-52 rounded-2xl"
+              resizeMode="cover"
+            />
+
+            <Image
+              source={icons.play}
+              className="w-14 h-14 absolute self-center top-[78px]"
+              resizeMode="contain"
+            />
+          </View>
+        )}
+      </TouchableOpacity>
 
       <View className="flex-row mt-4 pt-4 border-t border-black-200">
         <TouchableOpacity
@@ -140,9 +150,15 @@ const PostCard = ({ post }) => {
           </Text>
         </TouchableOpacity>
 
-        <Text className="text-gray-100">
-          💬 {post.commentsCount ?? 0}
-        </Text>
+        <TouchableOpacity
+          onPress={() => router.push(`/post/${post.$id}`)}
+          activeOpacity={0.8}
+          className="flex-row items-center"
+        >
+          <Text className="text-gray-100">
+            💬 {commentsCount}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
