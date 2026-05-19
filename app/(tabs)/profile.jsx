@@ -1,25 +1,60 @@
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import {
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { icons } from '../../constants';
 import EmptyState from '../../components/EmptyState';
 import PostCard from '../../components/PostCard';
 import InfoBox from '../../components/InfoBox';
-import { getUserPosts, signOut } from '../../lib/appwrite';
+import {
+  getSavedPosts,
+  getUserPosts,
+  signOut,
+} from '../../lib/appwrite';
 import useAppwrite from '../../lib/useAppwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
 const Profile = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
 
-  const { data: posts } = useAppwrite(() => {
+  const [activeTab, setActiveTab] = useState('posts');
+
+  const {
+    data: posts,
+    refetch: refetchPosts,
+  } = useAppwrite(() => {
     if (!user?.$id) {
       return Promise.resolve([]);
     }
 
     return getUserPosts(user.$id);
   });
+
+  const {
+    data: savedPosts,
+    refetch: refetchSavedPosts,
+  } = useAppwrite(() => {
+    if (!user?.$id) {
+      return Promise.resolve([]);
+    }
+
+    return getSavedPosts(user.$id);
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchPosts();
+      refetchSavedPosts();
+    }, [])
+  );
 
   const logout = async () => {
     await signOut();
@@ -28,10 +63,12 @@ const Profile = () => {
     router.replace('/sign-in');
   };
 
+  const currentData = activeTab === 'posts' ? posts ?? [] : savedPosts ?? [];
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <FlatList
-        data={posts ?? []}
+        data={currentData}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => <PostCard post={item} />}
         ListHeaderComponent={() => (
@@ -73,32 +110,61 @@ const Profile = () => {
               />
 
               <InfoBox
-                title="0"
-                subtitle="Підписників"
+                title={(savedPosts ?? []).length}
+                subtitle="Збережено"
                 titleStyles="text-xl"
               />
             </View>
 
-            <View className="w-full bg-black-100 border border-black-200 rounded-2xl p-4 mt-8">
-              <Text className="text-white text-base font-psemibold mb-2">
-                Майбутня аналітика навчання
-              </Text>
+            <View className="w-full flex-row bg-black-100 border border-black-200 rounded-2xl p-1 mt-8">
+              <TouchableOpacity
+                onPress={() => setActiveTab('posts')}
+                className={`flex-1 py-3 rounded-xl items-center ${
+                  activeTab === 'posts' ? 'bg-secondary' : ''
+                }`}
+              >
+                <Text
+                  className={`font-psemibold ${
+                    activeTab === 'posts'
+                      ? 'text-primary'
+                      : 'text-gray-100'
+                  }`}
+                >
+                  Мої публікації
+                </Text>
+              </TouchableOpacity>
 
-              <Text className="text-gray-100 text-sm font-pregular leading-5">
-                Тут з’являться рівень освоєння тем, кількість пройдених тестів,
-                слабкі місця та персональні ML-рекомендації.
-              </Text>
+              <TouchableOpacity
+                onPress={() => setActiveTab('saved')}
+                className={`flex-1 py-3 rounded-xl items-center ${
+                  activeTab === 'saved' ? 'bg-secondary' : ''
+                }`}
+              >
+                <Text
+                  className={`font-psemibold ${
+                    activeTab === 'saved'
+                      ? 'text-primary'
+                      : 'text-gray-100'
+                  }`}
+                >
+                  Збережене
+                </Text>
+              </TouchableOpacity>
             </View>
-
-            <Text className="w-full text-lg text-gray-100 font-pregular mt-8 mb-4">
-              Мої публікації
-            </Text>
           </View>
         )}
         ListEmptyComponent={() => (
           <EmptyState
-            title="Власних публікацій поки немає"
-            subtitle="Створи перший допис і почни формувати свою навчальну активність."
+            title={
+              activeTab === 'posts'
+                ? 'Власних публікацій поки немає'
+                : 'Збережених публікацій поки немає'
+            }
+            subtitle={
+              activeTab === 'posts'
+                ? 'Створи перший допис і почни формувати свою навчальну активність.'
+                : 'Натискай на закладку в постах, щоб зберігати корисні матеріали.'
+            }
           />
         )}
         contentContainerStyle={{

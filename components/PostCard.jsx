@@ -14,6 +14,8 @@ import {
   getPostLikeState,
   togglePostLike,
   getPostCommentsCount,
+  getPostSaveState,
+  togglePostSave,
 } from '../lib/appwrite';
 
 const PostCard = ({ post }) => {
@@ -21,24 +23,34 @@ const PostCard = ({ post }) => {
 
   const [likesCount, setLikesCount] = useState(post.likesCount ?? 0);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount ?? 0);
+
   const [isLiked, setIsLiked] = useState(false);
   const [likeId, setLikeId] = useState(null);
   const [likeLoading, setLikeLoading] = useState(false);
+
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveId, setSaveId] = useState(null);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadStates = async () => {
-      const [likeState, actualCommentsCount] = await Promise.all([
+      const [likeState, actualCommentsCount, saveState] = await Promise.all([
         getPostLikeState(post.$id, user?.$id),
         getPostCommentsCount(post.$id),
+        getPostSaveState(post.$id, user?.$id),
       ]);
 
       if (isMounted) {
         setLikesCount(likeState.likesCount);
         setIsLiked(likeState.isLiked);
         setLikeId(likeState.likeId);
+
         setCommentsCount(actualCommentsCount);
+
+        setIsSaved(saveState.isSaved);
+        setSaveId(saveState.saveId);
       }
     };
 
@@ -67,6 +79,26 @@ const PostCard = ({ post }) => {
       setLikeId(nextState.likeId);
     } finally {
       setLikeLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user?.$id || saveLoading) return;
+
+    setSaveLoading(true);
+
+    try {
+      const nextState = await togglePostSave({
+        postId: post.$id,
+        user,
+        currentSaveId: saveId,
+        isSaved,
+      });
+
+      setIsSaved(nextState.isSaved);
+      setSaveId(nextState.saveId);
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -127,7 +159,7 @@ const PostCard = ({ post }) => {
         )}
       </TouchableOpacity>
 
-      <View className="flex-row mt-4 pt-4 border-t border-black-200">
+      <View className="flex-row mt-4 pt-4 border-t border-black-200 items-center">
         <TouchableOpacity
           onPress={handleLike}
           activeOpacity={0.8}
@@ -153,10 +185,32 @@ const PostCard = ({ post }) => {
         <TouchableOpacity
           onPress={() => router.push(`/post/${post.$id}`)}
           activeOpacity={0.8}
-          className="flex-row items-center"
+          className="flex-row items-center mr-6"
         >
           <Text className="text-gray-100">
             💬 {commentsCount}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleSave}
+          activeOpacity={0.8}
+          className="flex-row items-center"
+        >
+          {saveLoading ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Text
+              className={`text-base ${
+                isSaved ? 'text-secondary' : 'text-gray-100'
+              }`}
+            >
+              🔖
+            </Text>
+          )}
+
+          <Text className="text-gray-100 ml-2">
+            {isSaved ? 'Збережено' : 'Зберегти'}
           </Text>
         </TouchableOpacity>
       </View>
