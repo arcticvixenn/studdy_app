@@ -65,30 +65,30 @@ const Create = () => {
   };
 
   const pickVideo = async () => {
-  try {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'video/*',
-      copyToCacheDirectory: true,
-    });
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'video/*',
+        copyToCacheDirectory: true,
+      });
 
-    if (!result.canceled) {
-      const asset = result.assets[0];
+      if (!result.canceled) {
+        const asset = result.assets[0];
 
-      const normalizedVideo = {
-        ...asset,
-        file: asset.file || result.output?.[0] || null,
-      };
+        const normalizedVideo = {
+          ...asset,
+          file: asset.file || result.output?.[0] || null,
+        };
 
-      setForm((prev) => ({
-        ...prev,
-        video: normalizedVideo,
-      }));
+        setForm((prev) => ({
+          ...prev,
+          video: normalizedVideo,
+        }));
+      }
+    } catch (error) {
+      console.log('pickVideo error:', error);
+      Alert.alert('Помилка', 'Не вдалося обрати відео.');
     }
-  } catch (error) {
-    console.log('pickVideo error:', error);
-    Alert.alert('Помилка', 'Не вдалося обрати відео.');
-  }
-};
+  };
 
   const submit = async () => {
     if (!form.title.trim() || !form.content.trim() || !form.category) {
@@ -130,12 +130,46 @@ const Create = () => {
 
   return (
     <SafeAreaView className="bg-primary h-full">
-      <ScrollView className="px-4 pt-6">
+      <ScrollView
+        className="px-4 pt-6"
+        contentContainerStyle={{
+          paddingBottom: 36,
+        }}
+      >
         <Text className="text-3xl text-white font-psemibold">
-          Створити публікацію
+          Створити
         </Text>
 
-        <View className="flex-row mt-6 mb-6">
+        <Text className="text-gray-100 text-sm mt-2 mb-6">
+          Тут можна створити публікацію для стрічки або навчальний курс.
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => router.push('/course/create')}
+          activeOpacity={0.85}
+          className="bg-black-100 border border-secondary rounded-2xl p-4 mb-6"
+        >
+          <Text className="text-secondary text-base font-psemibold text-center">
+            Створити навчальний курс
+          </Text>
+
+          <Text className="text-gray-100 text-xs text-center mt-2">
+            Додай курс, уроки та тести для навчального модуля Studdy
+          </Text>
+        </TouchableOpacity>
+
+        <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mb-6">
+          <Text className="text-white text-xl font-psemibold mb-2">
+            Створити публікацію
+          </Text>
+
+          <Text className="text-gray-100 text-sm leading-5">
+            Публікації з’являються у головній стрічці та можуть містити текст,
+            фото або відео.
+          </Text>
+        </View>
+
+        <View className="flex-row mb-6">
           {types.map((type) => (
             <TouchableOpacity
               key={type.key}

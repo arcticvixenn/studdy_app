@@ -17,6 +17,7 @@ import {
   getAllCourses,
   getUserLearningStats,
   getUserMlLearningRecommendations,
+  getUserKnowledgeMastery,
 } from '../../lib/appwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
@@ -136,6 +137,18 @@ const TopicItem = ({ topic, type }) => {
 };
 
 const MlRecommendationItem = ({ item }) => {
+  const getPriorityLabel = (priority) => {
+    if (priority >= 70) return 'Високий пріоритет';
+    if (priority >= 40) return 'Середній пріоритет';
+    return 'Низький пріоритет';
+  };
+
+  const getPriorityColor = (priority) => {
+    if (priority >= 70) return 'text-red-400';
+    if (priority >= 40) return 'text-yellow-400';
+    return 'text-secondary';
+  };
+
   return (
     <View className="bg-primary border border-black-200 rounded-xl p-3 mb-3">
       <View className="flex-row justify-between items-center">
@@ -143,8 +156,8 @@ const MlRecommendationItem = ({ item }) => {
           {item.topic}
         </Text>
 
-        <Text className="text-secondary font-psemibold">
-          {item.repeatPriority}/100
+        <Text className={`font-psemibold ${getPriorityColor(item.repeatPriority)}`}>
+          {getPriorityLabel(item.repeatPriority)}
         </Text>
       </View>
 
@@ -156,6 +169,18 @@ const MlRecommendationItem = ({ item }) => {
         Точність за темою: {item.accuracy}% · Помилок: {item.incorrect} ·
         Складність: {item.averageDifficulty}
       </Text>
+
+      {item.lessonId ? (
+        <TouchableOpacity
+          onPress={() => router.push(`/lesson/${item.lessonId}`)}
+          activeOpacity={0.85}
+          className="bg-secondary rounded-xl p-3 mt-4"
+        >
+          <Text className="text-primary text-center font-psemibold">
+            Перейти до уроку
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 };
@@ -197,8 +222,8 @@ const MlRecommendations = ({ ml, loading }) => {
       </Text>
 
       <Text className="text-gray-100 text-sm leading-5 mb-4">
-        ML-модель аналізує відповіді користувача, теми та складність питань,
-        щоб визначити, що краще повторити далі.
+        Studdy аналізує відповіді користувача, теми та складність питань,
+         щоб підібрати теми, які варто повторити першими.
       </Text>
 
       <View className="bg-primary border border-black-200 rounded-xl p-3 mb-4">
@@ -215,6 +240,103 @@ const MlRecommendations = ({ ml, loading }) => {
       ) : (
         <Text className="text-gray-100 text-sm">
           Поки немає тем, які потребують повторення.
+        </Text>
+      )}
+    </View>
+  );
+};
+
+const MasteryTopicItem = ({ item }) => {
+  const levelColor =
+    item.level === 'Сильний'
+      ? 'text-secondary'
+      : item.level === 'Впевнений'
+      ? 'text-yellow-400'
+      : item.level === 'Базовий'
+      ? 'text-orange-400'
+      : 'text-red-400';
+
+  return (
+    <View className="bg-primary border border-black-200 rounded-xl p-3 mb-3">
+      <View className="flex-row justify-between items-center">
+        <Text className="text-white font-psemibold flex-1">
+          {item.topic}
+        </Text>
+
+        <Text className={`font-psemibold ${levelColor}`}>
+          {item.level}
+        </Text>
+      </View>
+
+      <Text className="text-secondary text-xl font-psemibold mt-2">
+        {item.masteryScore}/100
+      </Text>
+
+      <Text className="text-gray-100 text-xs mt-2">
+        {item.explanation}
+      </Text>
+
+      <Text className="text-gray-100 text-xs mt-2">
+        Точність: {item.accuracy}% · Відповідей: {item.totalAnswers} · Помилок:{' '}
+        {item.incorrectAnswers} · Складність: {item.averageDifficulty}
+      </Text>
+    </View>
+  );
+};
+
+const KnowledgeMastery = ({ mastery, loading }) => {
+  if (loading) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (!mastery || !mastery.trained) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <Text className="text-white text-lg font-psemibold">
+          Профіль знань
+        </Text>
+
+        <Text className="text-gray-100 text-sm leading-5 mt-3">
+          Після кількох відповідей Studdy оцінить рівень знань за кожною темою.
+        </Text>
+
+        {mastery?.message ? (
+          <Text className="text-gray-100 text-xs mt-3">
+            {mastery.message}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6">
+      <Text className="text-white text-lg font-psemibold mb-2">
+        Профіль знань
+      </Text>
+
+      <Text className="text-gray-100 text-sm leading-5 mb-4">
+        ML-модель оцінює рівень засвоєння тем на основі точності, складності
+        питань, кількості відповідей і помилок.
+      </Text>
+
+      <View className="bg-primary border border-black-200 rounded-xl p-3 mb-4">
+        <Text className="text-gray-100 text-xs">
+          Модель: {mastery.modelType} · Навчальних прикладів: {mastery.samples}
+        </Text>
+      </View>
+
+      {mastery.topics.length ? (
+        mastery.topics.map((item) => (
+          <MasteryTopicItem key={item.topic} item={item} />
+        ))
+      ) : (
+        <Text className="text-gray-100 text-sm">
+          Даних для профілю знань поки недостатньо.
         </Text>
       )}
     </View>
@@ -365,6 +487,9 @@ const Learn = () => {
   const [ml, setMl] = useState(null);
   const [mlLoading, setMlLoading] = useState(false);
 
+  const [mastery, setMastery] = useState(null);
+  const [masteryLoading, setMasteryLoading] = useState(false);
+
   const loadStats = async () => {
     if (!user?.$id) return;
 
@@ -395,11 +520,27 @@ const Learn = () => {
     }
   };
 
+  const loadKnowledgeMastery = async () => {
+    if (!user?.$id) return;
+
+    setMasteryLoading(true);
+
+    try {
+      const result = await getUserKnowledgeMastery(user.$id);
+      setMastery(result);
+    } catch (error) {
+      console.log('load knowledge mastery error:', error);
+    } finally {
+      setMasteryLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       refetch();
       loadStats();
       loadMlRecommendations();
+      loadKnowledgeMastery();
     }, [user?.$id])
   );
 
@@ -424,15 +565,9 @@ const Learn = () => {
 
             <MlRecommendations ml={ml} loading={mlLoading} />
 
-            <TouchableOpacity
-              onPress={() => router.push('/course/create')}
-              activeOpacity={0.85}
-              className="bg-secondary rounded-2xl p-4 mt-6"
-            >
-              <Text className="text-primary text-base font-psemibold text-center">
-                Створити курс
-              </Text>
-            </TouchableOpacity>
+            <KnowledgeMastery mastery={mastery} loading={masteryLoading} />
+
+
 
             <Text className="text-lg text-gray-100 font-pregular mt-7 mb-4">
               Каталог курсів
