@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -11,6 +12,7 @@ import { router } from 'expo-router';
 import { icons } from '../constants';
 import { useGlobalContext } from '../context/GlobalProvider';
 import {
+  deletePost,
   getPostLikeState,
   togglePostLike,
   getPostCommentsCount,
@@ -18,7 +20,7 @@ import {
   togglePostSave,
 } from '../lib/appwrite';
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, onDeleted }) => {
   const { user } = useGlobalContext();
 
   const [likesCount, setLikesCount] = useState(post.likesCount ?? 0);
@@ -31,6 +33,10 @@ const PostCard = ({ post }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [saveId, setSaveId] = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
+
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const isOwner = post.authorId === user?.$id;
 
   useEffect(() => {
     let isMounted = true;
@@ -46,7 +52,9 @@ const PostCard = ({ post }) => {
         setLikesCount(likeState.likesCount);
         setIsLiked(likeState.isLiked);
         setLikeId(likeState.likeId);
+
         setCommentsCount(actualCommentsCount);
+
         setIsSaved(saveState.isSaved);
         setSaveId(saveState.saveId);
       }
@@ -97,6 +105,35 @@ const PostCard = ({ post }) => {
       setSaveId(nextState.saveId);
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!isOwner || deleteLoading) return;
+
+    const confirmed =
+      Platform.OS === 'web'
+        ? window.confirm('Видалити публікацію?')
+        : true;
+
+    if (!confirmed) return;
+
+    setDeleteLoading(true);
+
+    try {
+      await deletePost(post.$id);
+
+      if (onDeleted) {
+        onDeleted(post.$id);
+      }
+    } catch (error) {
+      console.log('deletePost error:', error);
+
+      if (Platform.OS === 'web') {
+        window.alert(error.message || 'Не вдалося видалити публікацію.');
+      }
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -169,11 +206,11 @@ const PostCard = ({ post }) => {
         )}
       </TouchableOpacity>
 
-      <View className="flex-row mt-4 pt-4 border-t border-black-200 items-center">
+      <View className="flex-row mt-4 pt-4 border-t border-black-200 items-center flex-wrap">
         <TouchableOpacity
           onPress={handleLike}
           activeOpacity={0.8}
-          className="flex-row items-center mr-6"
+          className="flex-row items-center mr-6 mb-2"
         >
           {likeLoading ? (
             <ActivityIndicator size="small" />
@@ -187,21 +224,25 @@ const PostCard = ({ post }) => {
             </Text>
           )}
 
-          <Text className="text-gray-100 ml-2">{likesCount}</Text>
+          <Text className="text-gray-100 ml-2">
+            {likesCount}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => router.push(`/post/${post.$id}`)}
           activeOpacity={0.8}
-          className="flex-row items-center mr-6"
+          className="flex-row items-center mr-6 mb-2"
         >
-          <Text className="text-gray-100">💬 {commentsCount}</Text>
+          <Text className="text-gray-100">
+            💬 {commentsCount}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleSave}
           activeOpacity={0.8}
-          className="flex-row items-center"
+          className="flex-row items-center mr-6 mb-2"
         >
           {saveLoading ? (
             <ActivityIndicator size="small" />
@@ -219,6 +260,19 @@ const PostCard = ({ post }) => {
             {isSaved ? 'Збережено' : 'Зберегти'}
           </Text>
         </TouchableOpacity>
+
+        {isOwner && (
+          <TouchableOpacity
+            onPress={handleDelete}
+            activeOpacity={0.8}
+            disabled={deleteLoading}
+            className="flex-row items-center mb-2"
+          >
+            <Text className="text-red-400">
+              {deleteLoading ? 'Видалення...' : '🗑 Видалити'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
