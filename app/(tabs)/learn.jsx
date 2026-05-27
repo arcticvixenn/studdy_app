@@ -16,6 +16,7 @@ import useAppwrite from '../../lib/useAppwrite';
 import {
   getAllCourses,
   getUserLearningStats,
+  getUserMlLearningRecommendations,
 } from '../../lib/appwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
@@ -130,6 +131,92 @@ const TopicItem = ({ topic, type }) => {
           Пріоритет повторення: {topic.priorityScore}
         </Text>
       ) : null}
+    </View>
+  );
+};
+
+const MlRecommendationItem = ({ item }) => {
+  return (
+    <View className="bg-primary border border-black-200 rounded-xl p-3 mb-3">
+      <View className="flex-row justify-between items-center">
+        <Text className="text-white font-psemibold flex-1">
+          {item.topic}
+        </Text>
+
+        <Text className="text-secondary font-psemibold">
+          {item.repeatPriority}/100
+        </Text>
+      </View>
+
+      <Text className="text-gray-100 text-xs mt-2">
+        {item.reason}
+      </Text>
+
+      <Text className="text-gray-100 text-xs mt-2">
+        Точність за темою: {item.accuracy}% · Помилок: {item.incorrect} ·
+        Складність: {item.averageDifficulty}
+      </Text>
+    </View>
+  );
+};
+
+const MlRecommendations = ({ ml, loading }) => {
+  if (loading) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (!ml || !ml.trained) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <Text className="text-white text-lg font-psemibold">
+          Персональні рекомендації Studdy
+        </Text>
+
+        <Text className="text-gray-100 text-sm leading-5 mt-3">
+          ML-модель почне формувати персональні теми для повторення після
+          кількох відповідей у тестах.
+        </Text>
+
+        {ml?.message ? (
+          <Text className="text-gray-100 text-xs mt-3">
+            {ml.message}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6">
+      <Text className="text-white text-lg font-psemibold mb-2">
+        Персональні рекомендації Studdy
+      </Text>
+
+      <Text className="text-gray-100 text-sm leading-5 mb-4">
+        ML-модель аналізує відповіді користувача, теми та складність питань,
+        щоб визначити, що краще повторити далі.
+      </Text>
+
+      <View className="bg-primary border border-black-200 rounded-xl p-3 mb-4">
+        <Text className="text-gray-100 text-xs">
+          Модель: {ml.modelType} · Навчальних прикладів: {ml.samples} · Ознак:{' '}
+          {ml.features}
+        </Text>
+      </View>
+
+      {ml.recommendations.length ? (
+        ml.recommendations.map((item) => (
+          <MlRecommendationItem key={item.topic} item={item} />
+        ))
+      ) : (
+        <Text className="text-gray-100 text-sm">
+          Поки немає тем, які потребують повторення.
+        </Text>
+      )}
     </View>
   );
 };
@@ -275,6 +362,9 @@ const Learn = () => {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
+  const [ml, setMl] = useState(null);
+  const [mlLoading, setMlLoading] = useState(false);
+
   const loadStats = async () => {
     if (!user?.$id) return;
 
@@ -290,10 +380,26 @@ const Learn = () => {
     }
   };
 
+  const loadMlRecommendations = async () => {
+    if (!user?.$id) return;
+
+    setMlLoading(true);
+
+    try {
+      const result = await getUserMlLearningRecommendations(user.$id);
+      setMl(result);
+    } catch (error) {
+      console.log('load ml recommendations error:', error);
+    } finally {
+      setMlLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       refetch();
       loadStats();
+      loadMlRecommendations();
     }, [user?.$id])
   );
 
@@ -311,22 +417,12 @@ const Learn = () => {
 
             <Text className="text-sm text-gray-100 font-pregular leading-5 mt-3">
               Курси, уроки й тести формують персональну освітню траєкторію
-              Studdy. Результати проходження стануть основою для ML-аналізу.
+              Studdy. Результати проходження стають основою для ML-аналізу.
             </Text>
 
             <LearningProgress stats={stats} loading={statsLoading} />
 
-            <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6">
-              <Text className="text-white font-psemibold text-base mb-2">
-                Майбутній ML-блок
-              </Text>
-
-              <Text className="text-gray-100 text-sm leading-5">
-                На основі відповідей у тестах система зможе прогнозувати
-                успішність, визначати прогалини та рекомендувати теми для
-                повторення.
-              </Text>
-            </View>
+            <MlRecommendations ml={ml} loading={mlLoading} />
 
             <TouchableOpacity
               onPress={() => router.push('/course/create')}
