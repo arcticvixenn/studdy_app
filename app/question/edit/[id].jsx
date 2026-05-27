@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
@@ -8,19 +9,24 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
-import FormField from '../../components/FormField';
-import CustomButton from '../../components/CustomButton';
-import { createQuestion } from '../../lib/appwrite';
-import { useGlobalContext } from '../../context/GlobalProvider';
+import FormField from '../../../components/FormField';
+import CustomButton from '../../../components/CustomButton';
+import {
+  getQuestionById,
+  updateQuestion,
+} from '../../../lib/appwrite';
 
 const answerOptions = ['A', 'B', 'C', 'D'];
 
-const CreateQuestion = () => {
-  const { quizId } = useLocalSearchParams();
-  const { user } = useGlobalContext();
+const EditQuestion = () => {
+  const { id } = useLocalSearchParams();
+  const questionId = Array.isArray(id) ? id[0] : id;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [form, setForm] = useState({
     questionText: '',
     optionA: '',
@@ -34,13 +40,38 @@ const CreateQuestion = () => {
     questionOrder: '1',
   });
 
-  const normalizedQuizId = Array.isArray(quizId) ? quizId[0] : quizId;
+  const loadQuestion = async () => {
+    setLoading(true);
+
+    try {
+      const question = await getQuestionById(questionId);
+
+      setForm({
+        questionText: question.questionText || '',
+        optionA: question.optionA || '',
+        optionB: question.optionB || '',
+        optionC: question.optionC || '',
+        optionD: question.optionD || '',
+        correctOption: question.correctOption || 'A',
+        explanation: question.explanation || '',
+        topic: question.topic || '',
+        difficulty: String(question.difficulty || 1),
+        questionOrder: String(question.questionOrder || 1),
+      });
+    } catch (error) {
+      Alert.alert('Помилка', 'Не вдалося завантажити питання.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadQuestion();
+    }, [questionId])
+  );
 
   const submit = async () => {
-    if (!normalizedQuizId) {
-      return Alert.alert('Помилка', 'Не вдалося визначити тест.');
-    }
-
     if (
       !form.questionText.trim() ||
       !form.optionA.trim() ||
@@ -52,26 +83,29 @@ const CreateQuestion = () => {
       return Alert.alert('Помилка', 'Заповни всі обов’язкові поля.');
     }
 
-    if (!user?.accountId) {
-      return Alert.alert('Помилка', 'Не вдалося визначити автора питання.');
-    }
-
-    setLoading(true);
+    setSaving(true);
 
     try {
-      await createQuestion({
-        quizId: normalizedQuizId,
+      await updateQuestion({
+        questionId,
         ...form,
-        user,
       });
 
       router.back();
     } catch (error) {
-      Alert.alert('Помилка', error.message || 'Не вдалося створити питання.');
+      Alert.alert('Помилка', error.message || 'Не вдалося оновити питання.');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="bg-primary h-full justify-center items-center">
+        <ActivityIndicator size="large" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -89,7 +123,7 @@ const CreateQuestion = () => {
         </TouchableOpacity>
 
         <Text className="text-white text-3xl font-psemibold mb-6">
-          Додати питання
+          Редагувати питання
         </Text>
 
         <FormField
@@ -198,13 +232,13 @@ const CreateQuestion = () => {
         />
 
         <CustomButton
-          title="Створити питання"
+          title="Зберегти зміни"
           handlePress={submit}
-          isLoading={loading}
+          isLoading={saving}
         />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default CreateQuestion;
+export default EditQuestion;

@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import FormField from '../../components/FormField';
 import CustomButton from '../../components/CustomButton';
 import { createLesson } from '../../lib/appwrite';
+import { useGlobalContext } from '../../context/GlobalProvider';
 
 const types = [
   { key: 'text', label: 'Текст' },
@@ -22,6 +23,7 @@ const types = [
 
 const CreateLesson = () => {
   const { courseId } = useLocalSearchParams();
+  const { user } = useGlobalContext();
 
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -35,40 +37,56 @@ const CreateLesson = () => {
     estimatedMinutes: '5',
   });
 
+  const normalizedCourseId = Array.isArray(courseId) ? courseId[0] : courseId;
+
   const pickVideo = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'video/*',
-      copyToCacheDirectory: true,
-    });
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'video/*',
+        copyToCacheDirectory: true,
+      });
 
-    if (!result.canceled) {
-      const asset = result.assets[0];
+      if (!result.canceled) {
+        const asset = result.assets[0];
 
-      setForm((prev) => ({
-        ...prev,
-        video: {
-          ...asset,
-          file: asset.file || result.output?.[0] || null,
-        },
-      }));
+        setForm((prev) => ({
+          ...prev,
+          video: {
+            ...asset,
+            file: asset.file || result.output?.[0] || null,
+          },
+        }));
+      }
+    } catch (error) {
+      console.log('pickVideo error:', error);
+      Alert.alert('Помилка', 'Не вдалося обрати відео.');
     }
   };
 
   const pickThumbnail = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.85,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+      });
 
-    if (!result.canceled) {
-      setForm((prev) => ({
-        ...prev,
-        thumbnail: result.assets[0],
-      }));
+      if (!result.canceled) {
+        setForm((prev) => ({
+          ...prev,
+          thumbnail: result.assets[0],
+        }));
+      }
+    } catch (error) {
+      console.log('pickThumbnail error:', error);
+      Alert.alert('Помилка', 'Не вдалося обрати обкладинку.');
     }
   };
 
   const submit = async () => {
+    if (!normalizedCourseId) {
+      return Alert.alert('Помилка', 'Не вдалося визначити курс.');
+    }
+
     if (!form.title.trim()) {
       return Alert.alert('Помилка', 'Введи назву уроку.');
     }
@@ -81,12 +99,17 @@ const CreateLesson = () => {
       return Alert.alert('Помилка', 'Додай відео та обкладинку.');
     }
 
+    if (!user?.accountId) {
+      return Alert.alert('Помилка', 'Не вдалося визначити автора уроку.');
+    }
+
     setLoading(true);
 
     try {
       await createLesson({
         ...form,
-        courseId: Array.isArray(courseId) ? courseId[0] : courseId,
+        courseId: normalizedCourseId,
+        user,
       });
 
       router.back();
@@ -189,7 +212,7 @@ const CreateLesson = () => {
               onPress={pickVideo}
               className="h-24 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-4"
             >
-              <Text className="text-white">
+              <Text className="text-white font-pmedium">
                 {form.video ? 'Відео обрано ✓' : 'Обрати відео'}
               </Text>
             </TouchableOpacity>
@@ -198,7 +221,7 @@ const CreateLesson = () => {
               onPress={pickThumbnail}
               className="h-24 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
             >
-              <Text className="text-white">
+              <Text className="text-white font-pmedium">
                 {form.thumbnail ? 'Обкладинку обрано ✓' : 'Обрати обкладинку'}
               </Text>
             </TouchableOpacity>
