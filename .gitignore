@@ -18,3 +18,8 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+ai-server/.env
+
+.env
+
+*.env

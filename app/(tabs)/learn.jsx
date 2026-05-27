@@ -18,6 +18,7 @@ import {
   getUserLearningStats,
   getUserMlLearningRecommendations,
   getUserKnowledgeMastery,
+  getUserContentRecommendations,
 } from '../../lib/appwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
@@ -223,7 +224,7 @@ const MlRecommendations = ({ ml, loading }) => {
 
       <Text className="text-gray-100 text-sm leading-5 mb-4">
         Studdy аналізує відповіді користувача, теми та складність питань,
-         щоб підібрати теми, які варто повторити першими.
+        щоб підібрати теми, які варто повторити першими.
       </Text>
 
       <View className="bg-primary border border-black-200 rounded-xl p-3 mb-4">
@@ -337,6 +338,145 @@ const KnowledgeMastery = ({ mastery, loading }) => {
       ) : (
         <Text className="text-gray-100 text-sm">
           Даних для профілю знань поки недостатньо.
+        </Text>
+      )}
+    </View>
+  );
+};
+
+const ContentRecommendationItem = ({ item }) => {
+  const getTypeLabel = (type) => {
+    if (type === 'course') return 'Курс';
+    if (type === 'lesson') return 'Урок';
+    if (type === 'post') {
+      if (item.mediaType === 'video') return 'Відео';
+      return 'Пост';
+    }
+
+    return 'Матеріал';
+  };
+
+  const openItem = () => {
+    if (item.recommendationType === 'course') {
+      router.push(`/course/${item.$id}`);
+      return;
+    }
+
+    if (item.recommendationType === 'lesson') {
+      router.push(`/lesson/${item.$id}`);
+      return;
+    }
+
+    if (item.recommendationType === 'post') {
+      router.push(`/post/${item.$id}`);
+    }
+  };
+
+  return (
+    <View className="bg-primary border border-black-200 rounded-xl p-3 mb-3">
+      <View className="flex-row justify-between items-center mb-2">
+        <Text className="text-secondary text-xs font-psemibold">
+          {getTypeLabel(item.recommendationType)}
+        </Text>
+
+        <Text className="text-gray-100 text-xs">
+          {item.recommendationScore} балів
+        </Text>
+      </View>
+
+      <Text className="text-white font-psemibold">
+        {item.title || 'Навчальний матеріал'}
+      </Text>
+
+      {item.description || item.content ? (
+        <Text className="text-gray-100 text-xs mt-2" numberOfLines={3}>
+          {item.description || item.content}
+        </Text>
+      ) : null}
+
+      {item.matchedTopic ? (
+        <Text className="text-gray-100 text-xs mt-2">
+          Пов’язано з темою: {item.matchedTopic}
+        </Text>
+      ) : null}
+
+      {item.reason ? (
+        <Text className="text-gray-100 text-xs mt-1">
+          {item.reason}
+        </Text>
+      ) : null}
+
+      <TouchableOpacity
+        onPress={openItem}
+        activeOpacity={0.85}
+        className="bg-secondary rounded-xl p-3 mt-4"
+      >
+        <Text className="text-primary text-center font-psemibold">
+          Відкрити
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const ContentRecommendations = ({ contentMl, loading }) => {
+  if (loading) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (!contentMl || !contentMl.trained) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <Text className="text-white text-lg font-psemibold">
+          Рекомендований контент
+        </Text>
+
+        <Text className="text-gray-100 text-sm leading-5 mt-3">
+          Після накопичення відповідей Studdy зможе рекомендувати курси,
+          уроки, пости та відео під поточні потреби користувача.
+        </Text>
+
+        {contentMl?.message ? (
+          <Text className="text-gray-100 text-xs mt-3">
+            {contentMl.message}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6">
+      <Text className="text-white text-lg font-psemibold mb-2">
+        Рекомендований контент
+      </Text>
+
+      <Text className="text-gray-100 text-sm leading-5 mb-4">
+        Studdy підбирає курси, уроки, пости та відео, які найкраще пов’язані з
+        темами, що потребують повторення.
+      </Text>
+
+      <View className="bg-primary border border-black-200 rounded-xl p-3 mb-4">
+        <Text className="text-gray-100 text-xs">
+          Модель: {contentMl.modelType} · Матеріалів: {contentMl.samples} ·
+          Сигналів: {contentMl.signals}
+        </Text>
+      </View>
+
+      {contentMl.recommendations.length ? (
+        contentMl.recommendations.map((item) => (
+          <ContentRecommendationItem
+            key={`${item.recommendationType}-${item.$id}`}
+            item={item}
+          />
+        ))
+      ) : (
+        <Text className="text-gray-100 text-sm">
+          Поки немає релевантного контенту для рекомендацій.
         </Text>
       )}
     </View>
@@ -490,6 +630,9 @@ const Learn = () => {
   const [mastery, setMastery] = useState(null);
   const [masteryLoading, setMasteryLoading] = useState(false);
 
+  const [contentMl, setContentMl] = useState(null);
+  const [contentMlLoading, setContentMlLoading] = useState(false);
+
   const loadStats = async () => {
     if (!user?.$id) return;
 
@@ -535,12 +678,28 @@ const Learn = () => {
     }
   };
 
+  const loadContentRecommendations = async () => {
+    if (!user?.$id) return;
+
+    setContentMlLoading(true);
+
+    try {
+      const result = await getUserContentRecommendations(user.$id);
+      setContentMl(result);
+    } catch (error) {
+      console.log('load content recommendations error:', error);
+    } finally {
+      setContentMlLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       refetch();
       loadStats();
       loadMlRecommendations();
       loadKnowledgeMastery();
+      loadContentRecommendations();
     }, [user?.$id])
   );
 
@@ -567,7 +726,10 @@ const Learn = () => {
 
             <KnowledgeMastery mastery={mastery} loading={masteryLoading} />
 
-
+            <ContentRecommendations
+              contentMl={contentMl}
+              loading={contentMlLoading}
+            />
 
             <Text className="text-lg text-gray-100 font-pregular mt-7 mb-4">
               Каталог курсів
@@ -577,7 +739,7 @@ const Learn = () => {
         ListEmptyComponent={() => (
           <EmptyState
             title="Курсів поки немає"
-            subtitle="Створи перший курс, щоб почати наповнювати навчальний модуль Studdy."
+            subtitle="Створи перший курс у вкладці «Створити», щоб наповнити навчальний модуль Studdy."
           />
         )}
         contentContainerStyle={{

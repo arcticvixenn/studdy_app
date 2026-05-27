@@ -36,6 +36,9 @@ const LessonDetails = () => {
 
       setLesson(lessonData);
       setQuiz(quizData);
+
+      console.log('LESSON DATA:', lessonData);
+      console.log('QUIZ DATA:', quizData);
     } catch (error) {
       console.log('loadLesson error:', error);
     } finally {
@@ -56,6 +59,13 @@ const LessonDetails = () => {
       </SafeAreaView>
     );
   }
+
+  const hasTextContent = Boolean(lesson?.content?.trim());
+
+  const canGenerateQuiz =
+    lesson?.mediaType === 'text' &&
+    hasTextContent &&
+    !quiz;
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -140,23 +150,60 @@ const LessonDetails = () => {
             </Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            onPress={() =>
-              router.push(
-                `/quiz/create?lessonId=${lesson?.$id}&courseId=${lesson?.courseId}`
-              )
-            }
-            activeOpacity={0.85}
-            className="bg-black-100 border border-secondary rounded-2xl p-5 mt-7"
-          >
-            <Text className="text-secondary text-lg font-psemibold">
-              Створити тест до уроку
-            </Text>
+          <>
+            {canGenerateQuiz ? (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(
+                    `/quiz/generate?lessonId=${lesson?.$id}&courseId=${lesson?.courseId}`
+                  )
+                }
+                activeOpacity={0.85}
+                className="bg-secondary rounded-2xl p-5 mt-7"
+              >
+                <Text className="text-primary text-lg font-psemibold">
+                  Згенерувати тест автоматично
+                </Text>
 
-            <Text className="text-gray-100 mt-2">
-              Додай питання, щоб після матеріалу користувач міг перевірити знання.
-            </Text>
-          </TouchableOpacity>
+                <Text className="text-primary/80 mt-2">
+                  Studdy створить питання на основі тексту уроку.
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-7">
+                <Text className="text-gray-100 text-sm leading-5">
+                  Автоматична генерація доступна тільки для текстових уроків із
+                  заповненим матеріалом.
+                </Text>
+
+                <Text className="text-gray-100 text-xs mt-3">
+                  Тип уроку: {lesson?.mediaType || 'невідомо'}
+                </Text>
+
+                <Text className="text-gray-100 text-xs mt-1">
+                  Текст уроку: {hasTextContent ? 'є' : 'немає'}
+                </Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() =>
+                router.push(
+                  `/quiz/create?lessonId=${lesson?.$id}&courseId=${lesson?.courseId}`
+                )
+              }
+              activeOpacity={0.85}
+              className="bg-black-100 border border-secondary rounded-2xl p-5 mt-4"
+            >
+              <Text className="text-secondary text-lg font-psemibold">
+                Створити тест вручну
+              </Text>
+
+              <Text className="text-gray-100 mt-2">
+                Додай власні питання, варіанти відповідей і пояснення.
+              </Text>
+            </TouchableOpacity>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
