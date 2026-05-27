@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   Text,
@@ -12,7 +13,11 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import EmptyState from '../../components/EmptyState';
 import useAppwrite from '../../lib/useAppwrite';
-import { getAllCourses } from '../../lib/appwrite';
+import {
+  getAllCourses,
+  getUserLearningStats,
+} from '../../lib/appwrite';
+import { useGlobalContext } from '../../context/GlobalProvider';
 
 const CourseCard = ({ course }) => {
   return (
@@ -71,16 +76,225 @@ const CourseCard = ({ course }) => {
   );
 };
 
+const StatBox = ({ title, value, subtitle }) => {
+  return (
+    <View className="bg-black-100 border border-black-200 rounded-2xl p-4 flex-1 mx-1">
+      <Text className="text-secondary text-2xl font-psemibold text-center">
+        {value}
+      </Text>
+
+      <Text className="text-white text-sm font-psemibold text-center mt-1">
+        {title}
+      </Text>
+
+      {subtitle ? (
+        <Text className="text-gray-100 text-xs text-center mt-1">
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
+};
+
+const TopicItem = ({ topic, type }) => {
+  const isWeak = type === 'weak';
+  const isMedium = type === 'medium';
+
+  return (
+    <View className="bg-primary border border-black-200 rounded-xl p-3 mb-2">
+      <View className="flex-row justify-between items-center">
+        <Text className="text-white font-psemibold flex-1">
+          {topic.topic}
+        </Text>
+
+        <Text
+          className={
+            isWeak
+              ? 'text-red-400'
+              : isMedium
+              ? 'text-yellow-400'
+              : 'text-secondary'
+          }
+        >
+          {topic.accuracy}%
+        </Text>
+      </View>
+
+      <Text className="text-gray-100 text-xs mt-1">
+        Правильно: {topic.correct}/{topic.total} · Помилок: {topic.incorrect} ·
+        Складність: {topic.averageDifficulty}
+      </Text>
+
+      {topic.priorityScore ? (
+        <Text className="text-gray-100 text-xs mt-1">
+          Пріоритет повторення: {topic.priorityScore}
+        </Text>
+      ) : null}
+    </View>
+  );
+};
+
+const LearningProgress = ({ stats, loading }) => {
+  if (loading) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (!stats || stats.attemptsCount === 0) {
+    return (
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+        <Text className="text-white text-lg font-psemibold">
+          Прогрес навчання
+        </Text>
+
+        <Text className="text-gray-100 text-sm leading-5 mt-3">
+          Пройди перший тест після уроку, щоб Studdy почав аналізувати твої
+          сильні та слабкі теми.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View className="mt-6">
+      <Text className="text-white text-xl font-psemibold mb-4">
+        Прогрес навчання
+      </Text>
+
+      <View className="flex-row mb-3">
+        <StatBox
+          title="Тестів"
+          value={stats.attemptsCount}
+          subtitle="пройдено"
+        />
+
+        <StatBox
+          title="Середній бал"
+          value={`${stats.averageScore}%`}
+          subtitle="за тестами"
+        />
+      </View>
+
+      <View className="flex-row mb-5">
+        <StatBox
+          title="Точність"
+          value={`${stats.accuracy}%`}
+          subtitle="за відповідями"
+        />
+
+        <StatBox
+          title="Відповідей"
+          value={stats.totalAnswers}
+          subtitle={`${stats.correctAnswers} правильних`}
+        />
+      </View>
+
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mb-4">
+        <Text className="text-white text-lg font-psemibold mb-2">
+          Рекомендовано повторити
+        </Text>
+
+        <Text className="text-gray-100 text-sm leading-5 mb-3">
+          Studdy визначає теми за кількістю помилок, складністю питань і
+          відсотком правильних відповідей.
+        </Text>
+
+        {stats.recommendedTopics.length ? (
+          stats.recommendedTopics.map((topic) => (
+            <TopicItem key={topic.topic} topic={topic} type="weak" />
+          ))
+        ) : (
+          <Text className="text-gray-100 text-sm">
+            Поки немає тем, які потребують повторення.
+          </Text>
+        )}
+      </View>
+
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mb-4">
+        <Text className="text-white text-lg font-psemibold mb-3">
+          Слабкі теми
+        </Text>
+
+        {stats.weakTopics.length ? (
+          stats.weakTopics.map((topic) => (
+            <TopicItem key={topic.topic} topic={topic} type="weak" />
+          ))
+        ) : (
+          <Text className="text-gray-100 text-sm">
+            Явно слабких тем поки немає.
+          </Text>
+        )}
+      </View>
+
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mb-4">
+        <Text className="text-white text-lg font-psemibold mb-3">
+          Середні теми
+        </Text>
+
+        {stats.mediumTopics.length ? (
+          stats.mediumTopics.map((topic) => (
+            <TopicItem key={topic.topic} topic={topic} type="medium" />
+          ))
+        ) : (
+          <Text className="text-gray-100 text-sm">
+            Середні теми з’являться після більшої кількості тестів.
+          </Text>
+        )}
+      </View>
+
+      <View className="bg-black-100 border border-black-200 rounded-2xl p-4">
+        <Text className="text-white text-lg font-psemibold mb-3">
+          Сильні теми
+        </Text>
+
+        {stats.strongTopics.length ? (
+          stats.strongTopics.map((topic) => (
+            <TopicItem key={topic.topic} topic={topic} type="strong" />
+          ))
+        ) : (
+          <Text className="text-gray-100 text-sm">
+            Сильні теми з’являться після кількох успішних тестів.
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+};
+
 const Learn = () => {
+  const { user } = useGlobalContext();
+
   const {
     data: courses,
     refetch,
   } = useAppwrite(getAllCourses);
 
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  const loadStats = async () => {
+    if (!user?.$id) return;
+
+    setStatsLoading(true);
+
+    try {
+      const result = await getUserLearningStats(user.$id);
+      setStats(result);
+    } catch (error) {
+      console.log('load learning stats error:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       refetch();
-    }, [])
+      loadStats();
+    }, [user?.$id])
   );
 
   return (
@@ -100,14 +314,17 @@ const Learn = () => {
               Studdy. Результати проходження стануть основою для ML-аналізу.
             </Text>
 
+            <LearningProgress stats={stats} loading={statsLoading} />
+
             <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6">
               <Text className="text-white font-psemibold text-base mb-2">
-                Далі тут буде персональна добірка
+                Майбутній ML-блок
               </Text>
 
               <Text className="text-gray-100 text-sm leading-5">
-                Система рекомендуватиме курси й уроки відповідно до сильних та
-                слабких тем користувача.
+                На основі відповідей у тестах система зможе прогнозувати
+                успішність, визначати прогалини та рекомендувати теми для
+                повторення.
               </Text>
             </View>
 
