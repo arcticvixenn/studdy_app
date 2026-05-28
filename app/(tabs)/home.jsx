@@ -16,12 +16,15 @@ import { images } from '../../constants';
 import SearchInput from '../../components/SearchInput';
 import EmptyState from '../../components/EmptyState';
 import PostCard from '../../components/PostCard';
-import { getAllPosts } from '../../lib/appwrite';
+import {
+  createViewEvent,
+  getAllPosts,
+} from '../../lib/appwrite';
 import { getPythonMlRecommendations } from '../../lib/pythonMlApi';
 import useAppwrite from '../../lib/useAppwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
-const RecommendationCard = ({ item }) => {
+const RecommendationCard = ({ item, user }) => {
   const getTypeLabel = () => {
     if (item.type === 'course') return 'Курс';
     if (item.type === 'lesson') return 'Урок';
@@ -34,7 +37,16 @@ const RecommendationCard = ({ item }) => {
     return 'Матеріал';
   };
 
-  const openRecommendation = () => {
+  const openRecommendation = async () => {
+    await createViewEvent({
+      userId: user?.$id,
+      permissionUserId: user?.accountId || user?.$id,
+      contentId: item.id,
+      contentType: item.type,
+      duration: 0,
+      source: 'ml_recommendation',
+    });
+
     if (item.type === 'course') {
       router.push(`/course/${item.id}`);
       return;
@@ -83,7 +95,7 @@ const RecommendationCard = ({ item }) => {
   );
 };
 
-const MlRecommendationsBlock = ({ ml, loading }) => {
+const MlRecommendationsBlock = ({ ml, loading, user }) => {
   if (loading) {
     return (
       <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
@@ -123,8 +135,8 @@ const MlRecommendationsBlock = ({ ml, loading }) => {
       </Text>
 
       <Text className="text-gray-100 text-sm leading-5 mt-2">
-        Studdy підібрав матеріали на основі твоїх відповідей, слабких тем і
-        навчальної активності.
+        Studdy підібрав матеріали на основі твоїх відповідей, слабких тем,
+        пошукової активності, переглядів і схожості контенту.
       </Text>
 
       <View className="bg-primary border border-black-200 rounded-xl p-3 mt-4">
@@ -138,13 +150,21 @@ const MlRecommendationsBlock = ({ ml, loading }) => {
             F1: {Math.round(Number(ml.metrics.f1 || 0) * 100)}%
           </Text>
         ) : null}
+
+        {ml.samples ? (
+          <Text className="text-gray-100 text-xs mt-1">
+            Навчальних прикладів: {ml.samples}
+          </Text>
+        ) : null}
       </View>
 
       {ml.recommendations?.length ? (
         <FlatList
           data={ml.recommendations}
           keyExtractor={(item) => `${item.type}-${item.id}`}
-          renderItem={({ item }) => <RecommendationCard item={item} />}
+          renderItem={({ item }) => (
+            <RecommendationCard item={item} user={user} />
+          )}
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mt-4"
@@ -230,6 +250,7 @@ const Home = () => {
             <MlRecommendationsBlock
               ml={mlRecommendations}
               loading={mlLoading}
+              user={user}
             />
 
             <Text className="text-lg text-gray-100 font-pregular mt-6 mb-4">

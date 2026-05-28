@@ -9,10 +9,42 @@ import {
 } from 'react-native';
 
 import { icons } from '../constants';
+import { createSearchEvent } from '../lib/appwrite';
+import { useGlobalContext } from '../context/GlobalProvider';
 
 const SearchInput = ({ initialQuery, refetch }) => {
   const pathname = usePathname();
+  const { user } = useGlobalContext();
+
   const [query, setQuery] = useState(initialQuery || '');
+
+  const handleSearch = async () => {
+    const normalizedQuery = query.trim();
+
+    if (normalizedQuery === '') {
+      return Alert.alert(
+        'Порожній запит',
+        'Введіть тему або ключове слово для пошуку.'
+      );
+    }
+
+    await createSearchEvent({
+      userId: user?.$id,
+      permissionUserId: user?.accountId || user?.$id,
+      query: normalizedQuery,
+      screen: pathname?.startsWith('/search') ? 'search' : 'home',
+    });
+
+    if (pathname.startsWith('/search')) {
+      router.setParams({ query: normalizedQuery });
+
+      if (refetch) {
+        refetch();
+      }
+    } else {
+      router.push(`/search/${encodeURIComponent(normalizedQuery)}`);
+    }
+  };
 
   return (
     <View className="flex flex-row items-center space-x-4 w-full h-16 px-4 bg-black-100 rounded-2xl border-2 border-black-200">
@@ -21,29 +53,12 @@ const SearchInput = ({ initialQuery, refetch }) => {
         value={query}
         placeholder="Знайдіть тему, матеріал або публікацію"
         placeholderTextColor="#CDCDE0"
-        onChangeText={(e) => setQuery(e)}
+        onChangeText={(value) => setQuery(value)}
+        returnKeyType="search"
+        onSubmitEditing={handleSearch}
       />
 
-      <TouchableOpacity
-        onPress={() => {
-          if (query.trim() === '') {
-            return Alert.alert(
-              'Порожній запит',
-              'Введіть тему або ключове слово для пошуку.'
-            );
-          }
-
-          if (pathname.startsWith('/search')) {
-            router.setParams({ query });
-
-            if (refetch) {
-              refetch();
-            }
-          } else {
-            router.push(`/search/${query}`);
-          }
-        }}
-      >
+      <TouchableOpacity onPress={handleSearch}>
         <Image
           source={icons.search}
           className="w-5 h-5"
