@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+﻿import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -18,10 +18,10 @@ import EmptyState from '../../components/EmptyState';
 import PostCard from '../../components/PostCard';
 import {
   createViewEvent,
+  getAllCourses,
   getAllPosts,
   getUserContentRecommendations,
 } from '../../lib/appwrite';
-import useAppwrite from '../../lib/useAppwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
 const RecommendationCard = ({ item, user }) => {
@@ -63,7 +63,11 @@ const RecommendationCard = ({ item, user }) => {
   };
 
   return (
-    <View className="bg-primary border border-black-200 rounded-xl p-3 mr-3 w-72">
+    <TouchableOpacity
+      onPress={openRecommendation}
+      activeOpacity={0.85}
+      className="bg-primary border border-black-200 rounded-2xl p-4 mb-3"
+    >
       <View className="flex-row justify-between items-center mb-2">
         <Text className="text-secondary text-xs font-psemibold">
           {getTypeLabel()}
@@ -74,28 +78,31 @@ const RecommendationCard = ({ item, user }) => {
         </Text>
       </View>
 
-      <Text className="text-white font-psemibold" numberOfLines={2}>
+      <Text className="text-white text-base font-psemibold" numberOfLines={2}>
         {item.title || 'Навчальний матеріал'}
       </Text>
 
-      <Text className="text-gray-100 text-xs mt-2" numberOfLines={3}>
+      <Text className="text-gray-100 text-sm mt-2 leading-5" numberOfLines={3}>
         {item.reason || 'Рекомендовано ML-моделлю Studdy.'}
       </Text>
 
-      <TouchableOpacity
-        onPress={openRecommendation}
-        activeOpacity={0.85}
-        className="bg-secondary rounded-xl p-3 mt-4"
-      >
+      <View className="bg-secondary rounded-xl p-3 mt-4">
         <Text className="text-primary text-center font-psemibold">
           Відкрити
         </Text>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const MlRecommendationsBlock = ({ ml, loading, user }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const recommendations = ml?.recommendations || [];
+  const visibleRecommendations = expanded
+    ? recommendations
+    : recommendations.slice(0, 3);
+
   if (loading) {
     return (
       <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
@@ -130,14 +137,24 @@ const MlRecommendationsBlock = ({ ml, loading, user }) => {
 
   return (
     <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mt-6">
-      <Text className="text-white text-lg font-psemibold">
-        Рекомендації для тебе
-      </Text>
+      <View className="flex-row justify-between items-start">
+        <View className="flex-1 pr-3">
+          <Text className="text-white text-lg font-psemibold">
+            Рекомендації для тебе
+          </Text>
 
-      <Text className="text-gray-100 text-sm leading-5 mt-2">
-        Studdy підібрав матеріали на основі твоїх відповідей, слабких тем,
-        пошукової активності, переглядів і схожості контенту.
-      </Text>
+          <Text className="text-gray-100 text-sm leading-5 mt-2">
+            Матеріали підібрано на основі відповідей, слабких тем, переглядів
+            і схожості контенту.
+          </Text>
+        </View>
+
+        <View className="bg-primary rounded-xl px-3 py-2 border border-black-200">
+          <Text className="text-secondary text-xs font-psemibold">
+            ML
+          </Text>
+        </View>
+      </View>
 
       <View className="bg-primary border border-black-200 rounded-xl p-3 mt-4">
         <Text className="text-gray-100 text-xs">
@@ -158,33 +175,175 @@ const MlRecommendationsBlock = ({ ml, loading, user }) => {
         ) : null}
       </View>
 
-      {ml.recommendations?.length ? (
-        <FlatList
-          data={ml.recommendations}
-          keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
-          renderItem={({ item }) => (
-            <RecommendationCard item={item} user={user} />
-          )}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-4"
+      <View className="mt-4">
+        {visibleRecommendations.length ? (
+          visibleRecommendations.map((item, index) => (
+            <RecommendationCard
+              key={`${item.type}-${item.id}-${index}`}
+              item={item}
+              user={user}
+            />
+          ))
+        ) : (
+          <Text className="text-gray-100 text-sm">
+            Поки немає матеріалів для персональних рекомендацій.
+          </Text>
+        )}
+      </View>
+
+      {recommendations.length > 3 ? (
+        <TouchableOpacity
+          onPress={() => setExpanded((prev) => !prev)}
+          activeOpacity={0.85}
+          className="bg-primary border border-secondary rounded-xl p-3 mt-1"
+        >
+          <Text className="text-secondary text-center font-psemibold">
+            {expanded ? 'Показати менше' : 'Показати всі рекомендації'}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+};
+
+const CourseFeedCard = ({ course, user }) => {
+  const openCourse = async () => {
+    await createViewEvent({
+      userId: user?.$id,
+      permissionUserId: user?.accountId || user?.$id,
+      contentId: course.$id,
+      contentType: 'course',
+      duration: 0,
+      source: 'home_feed',
+    });
+
+    router.push(`/course/${course.$id}`);
+  };
+
+  const openAuthorProfile = () => {
+    if (!course.authorId) return;
+
+    if (course.authorId === user?.$id) {
+      router.push('/profile');
+      return;
+    }
+
+    router.push(`/user/${course.authorId}`);
+  };
+
+  return (
+    <View className="bg-black-100 border border-black-200 rounded-2xl mx-4 mb-5 overflow-hidden">
+      {course.coverUrl ? (
+        <Image
+          source={{ uri: course.coverUrl }}
+          className="w-full h-44"
+          resizeMode="cover"
         />
       ) : (
-        <Text className="text-gray-100 text-sm mt-4">
-          Поки немає матеріалів для персональних рекомендацій.
-        </Text>
+        <View className="w-full h-36 bg-primary justify-center items-center">
+          <Text className="text-secondary font-psemibold">
+            Studdy Course
+          </Text>
+        </View>
       )}
+
+      <View className="p-4">
+        <View className="flex-row justify-between items-center mb-2">
+          <Text className="text-secondary text-xs font-psemibold">
+            Курс
+          </Text>
+
+          <Text className="text-gray-100 text-xs">
+            {course.level || 'Для всіх'}
+          </Text>
+        </View>
+
+        <Text className="text-white text-xl font-psemibold" numberOfLines={2}>
+          {course.title}
+        </Text>
+
+        {course.description ? (
+          <Text className="text-gray-100 text-sm leading-5 mt-3" numberOfLines={4}>
+            {course.description}
+          </Text>
+        ) : null}
+
+        <TouchableOpacity onPress={openAuthorProfile} activeOpacity={0.8}>
+          <Text className="text-gray-100 text-xs mt-4">
+            Автор:{' '}
+            <Text className="text-secondary font-psemibold">
+              {course.authorName || 'Користувач Studdy'}
+            </Text>
+          </Text>
+        </TouchableOpacity>
+
+        <View className="flex-row justify-between items-center mt-4">
+          <Text className="text-gray-100 text-xs">
+            Уроків: {course.lessonsCount ?? 0}
+          </Text>
+
+          <Text className="text-gray-100 text-xs">
+            {course.category || 'Навчання'}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={openCourse}
+          activeOpacity={0.85}
+          className="bg-secondary rounded-xl p-4 mt-4"
+        >
+          <Text className="text-primary text-center font-psemibold">
+            Відкрити курс
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const Home = () => {
   const { user } = useGlobalContext();
-  const { data: posts, refetch } = useAppwrite(getAllPosts);
 
+  const [feedItems, setFeedItems] = useState([]);
+  const [feedLoading, setFeedLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [mlRecommendations, setMlRecommendations] = useState(null);
   const [mlLoading, setMlLoading] = useState(false);
+
+  const buildHomeFeed = async () => {
+    setFeedLoading(true);
+
+    try {
+      const [posts, courses] = await Promise.all([
+        getAllPosts(),
+        getAllCourses(),
+      ]);
+
+      const normalizedPosts = (posts || [])
+        .filter((post) => post.mediaType !== 'short_video')
+        .map((post) => ({
+          ...post,
+          __feedType: 'post',
+          __sortDate: post.$createdAt,
+        }));
+
+      const normalizedCourses = (courses || []).map((course) => ({
+        ...course,
+        __feedType: 'course',
+        __sortDate: course.$createdAt,
+      }));
+
+      const mixedFeed = [...normalizedPosts, ...normalizedCourses].sort(
+        (a, b) => new Date(b.__sortDate) - new Date(a.__sortDate)
+      );
+
+      setFeedItems(mixedFeed);
+    } catch (error) {
+      console.log('buildHomeFeed error:', error);
+    } finally {
+      setFeedLoading(false);
+    }
+  };
 
   const loadMlRecommendations = async () => {
     if (!user?.$id) return;
@@ -211,7 +370,7 @@ const Home = () => {
 
   useFocusEffect(
     useCallback(() => {
-      refetch();
+      buildHomeFeed();
       loadMlRecommendations();
     }, [user?.$id])
   );
@@ -220,19 +379,35 @@ const Home = () => {
     setRefreshing(true);
 
     await Promise.all([
-      refetch(),
+      buildHomeFeed(),
       loadMlRecommendations(),
     ]);
 
     setRefreshing(false);
   };
 
+  const renderFeedItem = ({ item }) => {
+    if (item.__feedType === 'course') {
+      return <CourseFeedCard course={item} user={user} />;
+    }
+
+    return <PostCard post={item} />;
+  };
+
+  const emptyTitle = feedLoading
+    ? 'Завантаження...'
+    : 'Публікацій поки немає';
+
+  const emptySubtitle = feedLoading
+    ? 'Studdy завантажує освітню стрічку.'
+    : 'Створи перший освітній допис або курс для спільноти Studdy.';
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <FlatList
-        data={posts ?? []}
-        keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <PostCard post={item} />}
+        data={feedItems}
+        keyExtractor={(item) => `${item.__feedType}-${item.$id}`}
+        renderItem={renderFeedItem}
         ListHeaderComponent={() => (
           <View className="my-6 px-4">
             <View className="justify-between items-start flex-row mb-6">
@@ -268,8 +443,8 @@ const Home = () => {
         )}
         ListEmptyComponent={() => (
           <EmptyState
-            title="Публікацій поки немає"
-            subtitle="Створи перший освітній допис для спільноти Studdy."
+            title={emptyTitle}
+            subtitle={emptySubtitle}
           />
         )}
         refreshControl={

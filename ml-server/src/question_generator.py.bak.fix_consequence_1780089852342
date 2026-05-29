@@ -285,9 +285,9 @@ class QuestionGenerator:
         s = self.clean_text(sentence)
 
         direct_patterns = [
-            (r"^(.+?)\\s+формується\\s+під\\s+впливом\\s+(.+?)\\.?$", "Під впливом чого формується поняття «{term}»?"),
-            (r"^(.+?)\\s+спричиняє\\s+(.+?)\\.?$", "Що спричиняє поняття «{term}»?"),
-            (r"^(.+?)\\s+призводить до\\s+(.+?)\\.?$", "До чого призводить поняття «{term}»?"),
+            (r"^(.+?)\s+формується\s+під\s+впливом\s+(.+?)\.?$", "Під впливом чого формується поняття «{term}»?"),
+            (r"^(.+?)\s+спричиняє\s+(.+?)\.?$", "Що спричиняє поняття «{term}»?"),
+            (r"^(.+?)\s+призводить до\s+(.+?)\.?$", "До чого призводить поняття «{term}»?"),
         ]
 
         for pattern, question_template in direct_patterns:
@@ -310,7 +310,7 @@ class QuestionGenerator:
             )
 
         match = re.match(
-            r"^Причиною\\s+(.+?)\\s+.*?стає\\s+(.+?)\\.?$",
+            r"^Причиною\s+(.+?)\s+.*?стає\s+(.+?)\.?$",
             s,
             flags=re.IGNORECASE,
         )
@@ -320,14 +320,14 @@ class QuestionGenerator:
             answer = self.clean_text(match.group(2))
 
             return self.make_result(
-                question_text=f"Що часто є причиною {term}?",
+                question_text=f"Що часто є причиною поняття «{term}»?",
                 answer=answer,
                 answer_type="long",
                 term=term,
             )
 
         match = re.match(
-            r"^Наслідком\\s+(.+?)\\s+може\\s+бути\\s+(.+?)\\.?$",
+            r"^Наслідком\s+(.+?)\s+.*?може\s+бути\s+(.+?)\.?$",
             s,
             flags=re.IGNORECASE,
         )
@@ -337,7 +337,7 @@ class QuestionGenerator:
             answer = self.clean_text(match.group(2))
 
             return self.make_result(
-                question_text=f"Що може бути наслідком {term}?",
+                question_text=f"Що може бути наслідком поняття «{term}»?",
                 answer=answer,
                 answer_type="long",
                 term=term,

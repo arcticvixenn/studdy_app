@@ -1,23 +1,40 @@
-import { View, Text, Image } from 'react-native';
+﻿import React from 'react';
+import { Text, View } from 'react-native';
 import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
-import { icons } from '../../constants';
+const TabIcon = ({ iconName, title, focused }) => {
+  const color = focused ? '#FFA001' : '#CDCDE0';
 
-const TabIcon = ({ icon, color, name, focused }) => {
   return (
-    <View className="items-center justify-center gap-1">
-      <Image
-        source={icon}
-        resizeMode="contain"
-        tintColor={color}
-        className="w-6 h-6"
+    <View
+      style={{
+        width: 70,
+        height: 56,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Ionicons
+        name={iconName}
+        size={24}
+        color={color}
       />
 
       <Text
-        className={`${focused ? 'font-psemibold' : 'font-pregular'} text-[11px]`}
-        style={{ color }}
+        allowFontScaling={false}
+        numberOfLines={1}
+        style={{
+          color,
+          fontSize: 10,
+          lineHeight: 13,
+          marginTop: 4,
+          textAlign: 'center',
+          width: 70,
+          fontFamily: focused ? 'Poppins-SemiBold' : 'Poppins-Regular',
+        }}
       >
-        {name}
+        {title}
       </Text>
     </View>
   );
@@ -27,6 +44,7 @@ const TabsLayout = () => {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarShowLabel: false,
         tabBarActiveTintColor: '#FFA001',
         tabBarInactiveTintColor: '#CDCDE0',
@@ -34,7 +52,14 @@ const TabsLayout = () => {
           backgroundColor: '#161622',
           borderTopWidth: 1,
           borderTopColor: '#232533',
-          height: 84,
+          height: 76,
+          paddingTop: 6,
+          paddingBottom: 10,
+        },
+        tabBarItemStyle: {
+          height: 60,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       }}
     >
@@ -42,9 +67,12 @@ const TabsLayout = () => {
         name="home"
         options={{
           title: 'Головна',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={icons.home} color={color} name="Головна" focused={focused} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              iconName={focused ? 'home' : 'home-outline'}
+              title="Головна"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -53,9 +81,12 @@ const TabsLayout = () => {
         name="videos"
         options={{
           title: 'Відео',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={icons.play} color={color} name="Відео" focused={focused} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              iconName={focused ? 'play' : 'play-outline'}
+              title="Відео"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -64,9 +95,12 @@ const TabsLayout = () => {
         name="learn"
         options={{
           title: 'Навчання',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={icons.bookmark} color={color} name="Навчання" focused={focused} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              iconName={focused ? 'book' : 'book-outline'}
+              title="Навчання"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -75,9 +109,12 @@ const TabsLayout = () => {
         name="create"
         options={{
           title: 'Створити',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={icons.plus} color={color} name="Створити" focused={focused} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              iconName={focused ? 'add-circle' : 'add-circle-outline'}
+              title="Створити"
+              focused={focused}
+            />
           ),
         }}
       />
@@ -86,9 +123,12 @@ const TabsLayout = () => {
         name="profile"
         options={{
           title: 'Профіль',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={icons.profile} color={color} name="Профіль" focused={focused} />
+          tabBarIcon: ({ focused }) => (
+            <TabIcon
+              iconName={focused ? 'person' : 'person-outline'}
+              title="Профіль"
+              focused={focused}
+            />
           ),
         }}
       />

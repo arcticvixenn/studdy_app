@@ -1,0 +1,1352 @@
+﻿
+  ml-server\src\answer_candidate_model.py:5:import joblib
+  ml-server\src\answer_candidate_model.py:6:import numpy as np
+> ml-server\src\answer_candidate_model.py:7:from sklearn.ensemble import RandomFor
+estClassifier
+  ml-server\src\answer_candidate_model.py:8:from sklearn.metrics import classifica
+tion_report
+  ml-server\src\answer_candidate_model.py:9:from sklearn.model_selection import tr
+ain_test_split
+  ml-server\src\answer_candidate_model.py:10:
+  ml-server\src\answer_candidate_model.py:11:
+  ml-server\src\answer_candidate_model.py:12:MODEL_DIR = Path(__file__).resolve().
+parents[1] / "models"
+> ml-server\src\answer_candidate_model.py:13:MODEL_PATH = MODEL_DIR / "answer_cand
+idate_model.joblib"
+  ml-server\src\answer_candidate_model.py:14:
+  ml-server\src\answer_candidate_model.py:15:
+  ml-server\src\answer_candidate_model.py:16:STOPWORDS = {
+  ml-server\src\answer_candidate_model.py:17:    "і", "й", "та", "або", "але", "що
+", "це", "як", "для", "при", "над", "під",
+  ml-server\src\answer_candidate_model.py:36:
+  ml-server\src\answer_candidate_model.py:37:
+> ml-server\src\answer_candidate_model.py:38:def generate_candidates(text: str, ma
+x_ngram: int = 4) -> List[str]:
+  ml-server\src\answer_candidate_model.py:39:    tokens = tokenize(text)
+  ml-server\src\answer_candidate_model.py:40:    candidates = []
+  ml-server\src\answer_candidate_model.py:41:
+  ml-server\src\answer_candidate_model.py:42:    for n in range(1, max_ngram + 1):
+  ml-server\src\answer_candidate_model.py:68:
+  ml-server\src\answer_candidate_model.py:69:
+> ml-server\src\answer_candidate_model.py:70:def answer_match(candidate: str, answ
+er: str) -> int:
+  ml-server\src\answer_candidate_model.py:71:    candidate_norm = normalize(candid
+ate)
+> ml-server\src\answer_candidate_model.py:72:    answer_norm = normalize(answer)
+  ml-server\src\answer_candidate_model.py:73:
+> ml-server\src\answer_candidate_model.py:74:    if not candidate_norm or not answ
+er_norm:
+  ml-server\src\answer_candidate_model.py:75:        return 0
+  ml-server\src\answer_candidate_model.py:76:
+> ml-server\src\answer_candidate_model.py:77:    if candidate_norm == answer_norm:
+  ml-server\src\answer_candidate_model.py:78:        return 1
+  ml-server\src\answer_candidate_model.py:79:
+> ml-server\src\answer_candidate_model.py:80:    if answer_norm in candidate_norm 
+and len(answer_norm) >= 4:
+  ml-server\src\answer_candidate_model.py:81:        return 1
+  ml-server\src\answer_candidate_model.py:82:
+> ml-server\src\answer_candidate_model.py:83:    if candidate_norm in answer_norm 
+and len(candidate_norm) >= 4:
+  ml-server\src\answer_candidate_model.py:84:        return 1
+  ml-server\src\answer_candidate_model.py:85:
+  ml-server\src\answer_candidate_model.py:86:    return 0
+  ml-server\src\answer_candidate_model.py:87:
+  ml-server\src\answer_candidate_model.py:88:
+> ml-server\src\answer_candidate_model.py:89:class AnswerCandidateModel:
+  ml-server\src\answer_candidate_model.py:90:    def __init__(self):
+> ml-server\src\answer_candidate_model.py:91:        self.model = RandomForestClas
+sifier(
+  ml-server\src\answer_candidate_model.py:92:            n_estimators=160,
+  ml-server\src\answer_candidate_model.py:93:            random_state=42,
+  ml-server\src\answer_candidate_model.py:94:            max_depth=10,
+  ml-server\src\answer_candidate_model.py:95:            class_weight="balanced"
+  ml-server\src\answer_candidate_model.py:97:        self.is_trained = False
+  ml-server\src\answer_candidate_model.py:98:
+> ml-server\src\answer_candidate_model.py:99:    def extract_features(self, candid
+ate: str, sentence: str, context: str) -> List[float]:
+  ml-server\src\answer_candidate_model.py:100:        candidate_norm = normalize(c
+andidate)
+> ml-server\src\answer_candidate_model.py:101:        sentence_norm = normalize(se
+ntence)
+  ml-server\src\answer_candidate_model.py:102:        context_norm = normalize(con
+text)
+  ml-server\src\answer_candidate_model.py:103:
+  ml-server\src\answer_candidate_model.py:104:        words = candidate_norm.split
+()
+  ml-server\src\answer_candidate_model.py:105:        word_count = len(words)
+  ml-server\src\answer_candidate_model.py:114:        stopword_ratio = stopword_co
+unt / word_count if word_count else 0
+  ml-server\src\answer_candidate_model.py:115:
+> ml-server\src\answer_candidate_model.py:116:        sentence_pos = sentence_norm
+.find(candidate_norm)
+> ml-server\src\answer_candidate_model.py:117:        sentence_pos_norm = sentence
+_pos / max(len(sentence_norm), 1) if sentence_pos >= 0 else 1
+  ml-server\src\answer_candidate_model.py:118:
+  ml-server\src\answer_candidate_model.py:119:        context_freq = context_norm.
+count(candidate_norm)
+> ml-server\src\answer_candidate_model.py:120:        sentence_freq = sentence_nor
+m.count(candidate_norm)
+  ml-server\src\answer_candidate_model.py:121:
+  ml-server\src\answer_candidate_model.py:122:        return [
+  ml-server\src\answer_candidate_model.py:123:            word_count,
+  ml-server\src\answer_candidate_model.py:124:            char_count,
+  ml-server\src\answer_candidate_model.py:128:            has_hyphen,
+  ml-server\src\answer_candidate_model.py:129:            stopword_ratio,
+> ml-server\src\answer_candidate_model.py:130:            sentence_pos_norm,
+  ml-server\src\answer_candidate_model.py:131:            context_freq,
+> ml-server\src\answer_candidate_model.py:132:            sentence_freq,
+  ml-server\src\answer_candidate_model.py:133:        ]
+  ml-server\src\answer_candidate_model.py:134:
+  ml-server\src\answer_candidate_model.py:135:    def build_training_rows(self, da
+taset: List[Dict], max_records: int = 2500) -> Tuple[List[List[float]], List[int]]
+:
+  ml-server\src\answer_candidate_model.py:136:        x = []
+  ml-server\src\answer_candidate_model.py:139:        for record in dataset[:max_r
+ecords]:
+  ml-server\src\answer_candidate_model.py:140:            context = record["contex
+t"]
+> ml-server\src\answer_candidate_model.py:141:            answer = record["answer"
+]
+  ml-server\src\answer_candidate_model.py:142:
+> ml-server\src\answer_candidate_model.py:143:            candidates = generate_ca
+ndidates(context, max_ngram=4)
+  ml-server\src\answer_candidate_model.py:144:
+  ml-server\src\answer_candidate_model.py:145:            positive_added = False
+  ml-server\src\answer_candidate_model.py:146:
+  ml-server\src\answer_candidate_model.py:147:            for candidate in candida
+tes[:120]:
+> ml-server\src\answer_candidate_model.py:148:                label = answer_match
+(candidate, answer)
+  ml-server\src\answer_candidate_model.py:149:
+  ml-server\src\answer_candidate_model.py:150:                if label == 1:
+  ml-server\src\answer_candidate_model.py:151:                    positive_added =
+ True
+  ml-server\src\answer_candidate_model.py:152:
+  ml-server\src\answer_candidate_model.py:155:
+  ml-server\src\answer_candidate_model.py:156:            if not positive_added:
+> ml-server\src\answer_candidate_model.py:157:                x.append(self.extrac
+t_features(answer, context, context))
+  ml-server\src\answer_candidate_model.py:158:                y.append(1)
+  ml-server\src\answer_candidate_model.py:159:
+  ml-server\src\answer_candidate_model.py:160:        return x, y
+  ml-server\src\answer_candidate_model.py:161:
+  ml-server\src\answer_candidate_model.py:164:
+  ml-server\src\answer_candidate_model.py:165:        if not x or len(set(y)) < 2:
+> ml-server\src\answer_candidate_model.py:166:            raise ValueError("Not en
+ough training data for answer candidate model.")
+  ml-server\src\answer_candidate_model.py:167:
+  ml-server\src\answer_candidate_model.py:168:        x_train, x_test, y_train, y_
+test = train_test_split(
+  ml-server\src\answer_candidate_model.py:169:            x,
+  ml-server\src\answer_candidate_model.py:170:            y,
+  ml-server\src\answer_candidate_model.py:212:        return True
+  ml-server\src\answer_candidate_model.py:213:
+> ml-server\src\answer_candidate_model.py:214:    def rank_candidates(self, senten
+ce: str, context: str, limit: int = 10) -> List[Dict]:
+> ml-server\src\answer_candidate_model.py:215:        candidates = generate_candid
+ates(sentence, max_ngram=4)
+  ml-server\src\answer_candidate_model.py:216:
+  ml-server\src\answer_candidate_model.py:217:        if not candidates:
+  ml-server\src\answer_candidate_model.py:218:            return []
+  ml-server\src\answer_candidate_model.py:219:
+  ml-server\src\answer_candidate_model.py:220:        rows = [
+> ml-server\src\answer_candidate_model.py:221:            self.extract_features(ca
+ndidate, sentence, context)
+  ml-server\src\answer_candidate_model.py:222:            for candidate in candida
+tes
+  ml-server\src\answer_candidate_model.py:223:        ]
+  ml-server\src\answer_candidate_model.py:224:
+  ml-server\src\answer_candidate_model.py:225:        if self.is_trained and hasat
+tr(self.model, "predict_proba"):
+  ml-server\src\dataset_loader.py:50:
+  ml-server\src\dataset_loader.py:51:
+> ml-server\src\dataset_loader.py:52:def extract_answer_text(answers: Any) -> str:
+> ml-server\src\dataset_loader.py:53:    if not answers:
+  ml-server\src\dataset_loader.py:54:        return ""
+  ml-server\src\dataset_loader.py:55:
+> ml-server\src\dataset_loader.py:56:    if isinstance(answers, dict):
+> ml-server\src\dataset_loader.py:57:        text_value = answers.get("text")
+  ml-server\src\dataset_loader.py:58:
+  ml-server\src\dataset_loader.py:59:        if isinstance(text_value, list) and t
+ext_value:
+  ml-server\src\dataset_loader.py:60:            return normalize_text(text_value[
+0])
+  ml-server\src\dataset_loader.py:61:
+  ml-server\src\dataset_loader.py:63:            return normalize_text(text_value)
+  ml-server\src\dataset_loader.py:64:
+> ml-server\src\dataset_loader.py:65:    if isinstance(answers, list) and answers:
+> ml-server\src\dataset_loader.py:66:        first = answers[0]
+  ml-server\src\dataset_loader.py:67:
+  ml-server\src\dataset_loader.py:68:        if isinstance(first, dict):
+  ml-server\src\dataset_loader.py:69:            return normalize_text(first.get("
+text", ""))
+  ml-server\src\dataset_loader.py:70:
+  ml-server\src\dataset_loader.py:88:
+  ml-server\src\dataset_loader.py:89:                for qa in paragraph.get("qas"
+, []):
+> ml-server\src\dataset_loader.py:90:                    question = normalize_text
+(qa.get("question", ""))
+> ml-server\src\dataset_loader.py:91:                    answer = extract_answer_t
+ext(qa.get("answers"))
+  ml-server\src\dataset_loader.py:92:
+> ml-server\src\dataset_loader.py:93:                    if context and question a
+nd answer:
+  ml-server\src\dataset_loader.py:94:                        records.append({
+> ml-server\src\dataset_loader.py:95:                            "topic": title,
+  ml-server\src\dataset_loader.py:96:                            "context": contex
+t,
+> ml-server\src\dataset_loader.py:97:                            "question": quest
+ion,
+> ml-server\src\dataset_loader.py:98:                            "answer": answer
+  ml-server\src\dataset_loader.py:99:                        })
+  ml-server\src\dataset_loader.py:100:
+  ml-server\src\dataset_loader.py:101:    elif isinstance(data, list):
+  ml-server\src\dataset_loader.py:102:        for item in data:
+  ml-server\src\dataset_loader.py:105:
+  ml-server\src\dataset_loader.py:106:            context = normalize_text(item.ge
+t("context", ""))
+> ml-server\src\dataset_loader.py:107:            question = normalize_text(item.g
+et("question", ""))
+> ml-server\src\dataset_loader.py:108:            answer = extract_answer_text(ite
+m.get("answers", item.get("answer", "")))
+> ml-server\src\dataset_loader.py:109:            topic = normalize_text(item.get(
+"title", item.get("topic", "Без теми")))
+  ml-server\src\dataset_loader.py:110:
+> ml-server\src\dataset_loader.py:111:            if context and question and answ
+er:
+  ml-server\src\dataset_loader.py:112:                records.append({
+> ml-server\src\dataset_loader.py:113:                    "topic": topic,
+  ml-server\src\dataset_loader.py:114:                    "context": context,
+> ml-server\src\dataset_loader.py:115:                    "question": question,
+> ml-server\src\dataset_loader.py:116:                    "answer": answer
+  ml-server\src\dataset_loader.py:117:                })
+  ml-server\src\dataset_loader.py:118:
+  ml-server\src\dataset_loader.py:119:    return records
+  ml-server\src\dataset_loader.py:120:
+  ml-server\src\dataset_loader.py:126:    for record in records:
+  ml-server\src\dataset_loader.py:127:        context = normalize_text(record["con
+text"])
+> ml-server\src\dataset_loader.py:128:        question = normalize_text(record["qu
+estion"])
+> ml-server\src\dataset_loader.py:129:        answer = normalize_text(record["answ
+er"])
+> ml-server\src\dataset_loader.py:130:        topic = normalize_text(record.get("t
+opic", "Без теми"))
+  ml-server\src\dataset_loader.py:131:
+  ml-server\src\dataset_loader.py:132:        if len(context) < 80:
+  ml-server\src\dataset_loader.py:133:            continue
+  ml-server\src\dataset_loader.py:134:
+> ml-server\src\dataset_loader.py:135:        if len(question) < 8:
+  ml-server\src\dataset_loader.py:136:            continue
+  ml-server\src\dataset_loader.py:137:
+> ml-server\src\dataset_loader.py:138:        if len(answer) < 2 or len(answer) > 
+90:
+  ml-server\src\dataset_loader.py:139:            continue
+  ml-server\src\dataset_loader.py:140:
+> ml-server\src\dataset_loader.py:141:        key = (question.lower(), answer.lowe
+r())
+  ml-server\src\dataset_loader.py:142:
+  ml-server\src\dataset_loader.py:143:        if key in seen:
+  ml-server\src\dataset_loader.py:144:            continue
+  ml-server\src\dataset_loader.py:145:
+  ml-server\src\dataset_loader.py:147:
+  ml-server\src\dataset_loader.py:148:        filtered.append({
+> ml-server\src\dataset_loader.py:149:            "topic": topic,
+  ml-server\src\dataset_loader.py:150:            "context": context,
+> ml-server\src\dataset_loader.py:151:            "question": question,
+> ml-server\src\dataset_loader.py:152:            "answer": answer
+  ml-server\src\dataset_loader.py:153:        })
+  ml-server\src\dataset_loader.py:154:
+  ml-server\src\dataset_loader.py:155:        if len(filtered) >= limit:
+  ml-server\src\dataset_loader.py:156:            break
+  ml-server\src\difficulty_model.py:1:from typing import List
+  ml-server\src\difficulty_model.py:2:import numpy as np
+> ml-server\src\difficulty_model.py:3:from sklearn.ensemble import RandomForestCla
+ssifier
+  ml-server\src\difficulty_model.py:4:
+  ml-server\src\difficulty_model.py:5:from src.text_preprocessor import tokenize
+  ml-server\src\difficulty_model.py:6:
+  ml-server\src\difficulty_model.py:7:
+> ml-server\src\difficulty_model.py:8:class DifficultyModel:
+  ml-server\src\difficulty_model.py:9:    def __init__(self):
+> ml-server\src\difficulty_model.py:10:        self.model = RandomForestClassifier
+(
+  ml-server\src\difficulty_model.py:11:            n_estimators=120,
+  ml-server\src\difficulty_model.py:12:            random_state=42,
+  ml-server\src\difficulty_model.py:13:            max_depth=6
+  ml-server\src\difficulty_model.py:14:        )
+  ml-server\src\difficulty_model.py:15:        self.is_trained = False
+  ml-server\src\difficulty_model.py:16:
+> ml-server\src\difficulty_model.py:17:    def extract_features(self, sentence: st
+r) -> List[float]:
+> ml-server\src\difficulty_model.py:18:        tokens = tokenize(sentence)
+  ml-server\src\difficulty_model.py:19:
+  ml-server\src\difficulty_model.py:20:        word_count = len(tokens)
+> ml-server\src\difficulty_model.py:21:        char_count = len(sentence)
+  ml-server\src\difficulty_model.py:22:        avg_word_len = np.mean([len(token) 
+for token in tokens]) if tokens else 0
+  ml-server\src\difficulty_model.py:23:        long_words = len([token for token i
+n tokens if len(token) >= 8])
+> ml-server\src\difficulty_model.py:24:        comma_count = sentence.count(",")
+  ml-server\src\difficulty_model.py:25:        special_terms = len([
+  ml-server\src\difficulty_model.py:26:            token for token in tokens
+  ml-server\src\difficulty_model.py:27:            if token in {
+  ml-server\src\difficulty_model.py:28:                "класифікація", "регресія",
+ "кластеризація",
+  ml-server\src\difficulty_model.py:42:        ]
+  ml-server\src\difficulty_model.py:43:
+> ml-server\src\difficulty_model.py:44:    def auto_label(self, sentence: str) -> 
+int:
+> ml-server\src\difficulty_model.py:45:        features = self.extract_features(se
+ntence)
+  ml-server\src\difficulty_model.py:46:
+  ml-server\src\difficulty_model.py:47:        word_count = features[0]
+  ml-server\src\difficulty_model.py:48:        long_words = features[3]
+  ml-server\src\difficulty_model.py:49:        special_terms = features[5]
+  ml-server\src\difficulty_model.py:68:        return 3
+  ml-server\src\difficulty_model.py:69:
+> ml-server\src\difficulty_model.py:70:    def train(self, sentences: List[str]):
+> ml-server\src\difficulty_model.py:71:        if not sentences:
+  ml-server\src\difficulty_model.py:72:            return
+  ml-server\src\difficulty_model.py:73:
+> ml-server\src\difficulty_model.py:74:        x = [self.extract_features(sentence
+) for sentence in sentences]
+> ml-server\src\difficulty_model.py:75:        y = [self.auto_label(sentence) for 
+sentence in sentences]
+  ml-server\src\difficulty_model.py:76:
+  ml-server\src\difficulty_model.py:77:        if len(set(y)) < 2:
+> ml-server\src\difficulty_model.py:78:            y = [1 if i % 3 == 0 else 2 if 
+i % 3 == 1 else 3 for i in range(len(sentences))]
+  ml-server\src\difficulty_model.py:79:
+  ml-server\src\difficulty_model.py:80:        self.model.fit(x, y)
+  ml-server\src\difficulty_model.py:81:        self.is_trained = True
+  ml-server\src\difficulty_model.py:82:
+> ml-server\src\difficulty_model.py:83:    def predict(self, sentence: str) -> int
+:
+  ml-server\src\difficulty_model.py:84:        if not self.is_trained:
+> ml-server\src\difficulty_model.py:85:            return self.auto_label(sentence
+)
+  ml-server\src\difficulty_model.py:86:
+> ml-server\src\difficulty_model.py:87:        features = [self.extract_features(s
+entence)]
+  ml-server\src\difficulty_model.py:88:        return int(self.model.predict(featu
+res)[0])
+  ml-server\src\distractor_generator.py:24:
+  ml-server\src\distractor_generator.py:25:
+> ml-server\src\distractor_generator.py:26:METRIC_DISTRACTORS = [
+  ml-server\src\distractor_generator.py:27:    "класифікація, регресія та кластери
+зація",
+  ml-server\src\distractor_generator.py:28:    "тренувальна, тестова та валідаційн
+а вибірки",
+  ml-server\src\distractor_generator.py:29:    "середнє значення, медіана та диспе
+рсія",
+  ml-server\src\distractor_generator.py:30:    "ознаки, мітки класів та навчальні 
+приклади",
+  ml-server\src\distractor_generator.py:33:
+  ml-server\src\distractor_generator.py:34:
+> ml-server\src\distractor_generator.py:35:PURPOSE_DISTRACTORS = {
+  ml-server\src\distractor_generator.py:36:    "регресія": [
+  ml-server\src\distractor_generator.py:37:        "для визначення класу об'єкта н
+а основі його ознак",
+  ml-server\src\distractor_generator.py:38:        "для об'єднання схожих об'єктів
+ у групи",
+  ml-server\src\distractor_generator.py:39:        "для роботи з даними без готови
+х правильних відповідей",
+  ml-server\src\distractor_generator.py:73:
+  ml-server\src\distractor_generator.py:74:
+> ml-server\src\distractor_generator.py:75:GENERIC_PURPOSE_DISTRACTORS = [
+  ml-server\src\distractor_generator.py:76:    "для прогнозування числових значень
+",
+  ml-server\src\distractor_generator.py:77:    "для визначення класу об'єкта на ос
+нові його ознак",
+  ml-server\src\distractor_generator.py:78:    "для об'єднання схожих об'єктів у г
+рупи",
+  ml-server\src\distractor_generator.py:79:    "для навчання на розмічених даних",
+  ml-server\src\distractor_generator.py:84:
+  ml-server\src\distractor_generator.py:85:
+> ml-server\src\distractor_generator.py:86:class DistractorGenerator:
+  ml-server\src\distractor_generator.py:87:    def __init__(self):
+  ml-server\src\distractor_generator.py:88:        random.seed(42)
+  ml-server\src\distractor_generator.py:89:
+  ml-server\src\distractor_generator.py:90:    def normalize(self, value: str) -> 
+str:
+  ml-server\src\distractor_generator.py:91:        return str(value).strip().lower
+()
+  ml-server\src\distractor_generator.py:92:
+> ml-server\src\distractor_generator.py:93:    def unique_first_three(self, correc
+t_answer: str, candidates: List[str]) -> List[str]:
+> ml-server\src\distractor_generator.py:94:        correct_lower = self.normalize(
+correct_answer)
+  ml-server\src\distractor_generator.py:95:        result = []
+  ml-server\src\distractor_generator.py:96:
+  ml-server\src\distractor_generator.py:97:        for candidate in candidates:
+  ml-server\src\distractor_generator.py:98:            candidate = str(candidate).
+strip()
+  ml-server\src\distractor_generator.py:123:        return result[:3]
+  ml-server\src\distractor_generator.py:124:
+> ml-server\src\distractor_generator.py:125:    def generate_term_distractors(self
+, correct_answer: str, topic: str = "") -> List[str]:
+  ml-server\src\distractor_generator.py:126:        candidates = []
+  ml-server\src\distractor_generator.py:127:
+> ml-server\src\distractor_generator.py:128:        correct_lower = self.normalize
+(correct_answer)
+  ml-server\src\distractor_generator.py:129:
+  ml-server\src\distractor_generator.py:130:        if "навчання" in correct_lower
+:
+  ml-server\src\distractor_generator.py:131:            candidates.extend([
+  ml-server\src\distractor_generator.py:132:                "класифікація",
+  ml-server\src\distractor_generator.py:153:
+  ml-server\src\distractor_generator.py:154:        random.shuffle(candidates)
+> ml-server\src\distractor_generator.py:155:        return self.unique_first_three
+(correct_answer, candidates)
+  ml-server\src\distractor_generator.py:156:
+> ml-server\src\distractor_generator.py:157:    def generate_purpose_distractors(
+  ml-server\src\distractor_generator.py:158:        self,
+> ml-server\src\distractor_generator.py:159:        correct_answer: str,
+> ml-server\src\distractor_generator.py:160:        source_sentence: str = "",
+  ml-server\src\distractor_generator.py:161:        term: str = ""
+  ml-server\src\distractor_generator.py:162:    ) -> List[str]:
+> ml-server\src\distractor_generator.py:163:        sentence_lower = self.normaliz
+e(source_sentence)
+  ml-server\src\distractor_generator.py:164:        term_lower = self.normalize(te
+rm)
+  ml-server\src\distractor_generator.py:165:
+  ml-server\src\distractor_generator.py:166:        candidates = []
+  ml-server\src\distractor_generator.py:167:
+> ml-server\src\distractor_generator.py:168:        if "метрик" in sentence_lower 
+or "точність" in sentence_lower or "f1" in sentence_lower:
+> ml-server\src\distractor_generator.py:169:            candidates.extend(METRIC_D
+ISTRACTORS)
+> ml-server\src\distractor_generator.py:170:            return self.unique_first_t
+hree(correct_answer, candidates)
+  ml-server\src\distractor_generator.py:171:
+> ml-server\src\distractor_generator.py:172:        for known_term, known_distract
+ors in PURPOSE_DISTRACTORS.items():
+> ml-server\src\distractor_generator.py:173:            if known_term in term_lowe
+r or known_term in sentence_lower:
+> ml-server\src\distractor_generator.py:174:                candidates.extend(know
+n_distractors)
+> ml-server\src\distractor_generator.py:175:                return self.unique_fir
+st_three(correct_answer, candidates)
+  ml-server\src\distractor_generator.py:176:
+> ml-server\src\distractor_generator.py:177:        candidates.extend(GENERIC_PURP
+OSE_DISTRACTORS)
+  ml-server\src\distractor_generator.py:178:        random.shuffle(candidates)
+  ml-server\src\distractor_generator.py:179:
+> ml-server\src\distractor_generator.py:180:        return self.unique_first_three
+(correct_answer, candidates)
+  ml-server\src\keyword_extractor.py:1:from typing import List, Dict
+> ml-server\src\keyword_extractor.py:2:from sklearn.feature_extraction.text import
+ TfidfVectorizer
+  ml-server\src\keyword_extractor.py:3:
+> ml-server\src\keyword_extractor.py:4:from src.text_preprocessor import normalize
+_for_ml, split_sentences
+  ml-server\src\keyword_extractor.py:5:
+  ml-server\src\keyword_extractor.py:6:
+> ml-server\src\keyword_extractor.py:7:BAD_KEYWORDS = {
+  ml-server\src\keyword_extractor.py:8:    "без", "дані", "даних", "основі", "дозв
+оляє", "використовується",
+  ml-server\src\keyword_extractor.py:9:    "застосовується", "оцінюється", "значен
+ь", "ціни", "температури",
+  ml-server\src\keyword_extractor.py:10:    "рейтингу", "прикладу", "відома", "пра
+вильна", "відповідь",
+  ml-server\src\keyword_extractor.py:11:    "може", "мають", "готових", "визначає"
+, "складається"
+  ml-server\src\keyword_extractor.py:34:
+  ml-server\src\keyword_extractor.py:35:
+> ml-server\src\keyword_extractor.py:36:class KeywordExtractor:
+> ml-server\src\keyword_extractor.py:37:    def __init__(self, max_keywords: int =
+ 20):
+> ml-server\src\keyword_extractor.py:38:        self.max_keywords = max_keywords
+  ml-server\src\keyword_extractor.py:39:
+> ml-server\src\keyword_extractor.py:40:    def is_good_keyword(self, keyword: str
+) -> bool:
+> ml-server\src\keyword_extractor.py:41:        keyword = keyword.strip().lower()
+  ml-server\src\keyword_extractor.py:42:
+> ml-server\src\keyword_extractor.py:43:        if len(keyword) < 4:
+  ml-server\src\keyword_extractor.py:44:            return False
+  ml-server\src\keyword_extractor.py:45:
+> ml-server\src\keyword_extractor.py:46:        words = keyword.split()
+  ml-server\src\keyword_extractor.py:47:
+  ml-server\src\keyword_extractor.py:48:        if len(words) > 3:
+  ml-server\src\keyword_extractor.py:49:            return False
+  ml-server\src\keyword_extractor.py:50:
+> ml-server\src\keyword_extractor.py:51:        if keyword in BAD_KEYWORDS:
+  ml-server\src\keyword_extractor.py:52:            return False
+  ml-server\src\keyword_extractor.py:53:
+> ml-server\src\keyword_extractor.py:54:        if words[0] in BAD_KEYWORDS or wor
+ds[-1] in BAD_KEYWORDS:
+  ml-server\src\keyword_extractor.py:55:            return False
+  ml-server\src\keyword_extractor.py:56:
+  ml-server\src\keyword_extractor.py:57:        return True
+  ml-server\src\keyword_extractor.py:58:
+  ml-server\src\keyword_extractor.py:64:            if term in lower_text:
+  ml-server\src\keyword_extractor.py:65:                result.append({
+> ml-server\src\keyword_extractor.py:66:                    "keyword": term,
+  ml-server\src\keyword_extractor.py:67:                    "score": 3.0
+  ml-server\src\keyword_extractor.py:68:                })
+  ml-server\src\keyword_extractor.py:69:
+  ml-server\src\keyword_extractor.py:70:        return result
+  ml-server\src\keyword_extractor.py:71:
+> ml-server\src\keyword_extractor.py:72:    def extract_keywords(self, text: str) 
+-> List[Dict]:
+> ml-server\src\keyword_extractor.py:73:        sentences = split_sentences(text)
+  ml-server\src\keyword_extractor.py:74:
+> ml-server\src\keyword_extractor.py:75:        if not sentences:
+  ml-server\src\keyword_extractor.py:76:            return []
+  ml-server\src\keyword_extractor.py:77:
+  ml-server\src\keyword_extractor.py:78:        result_map = {}
+  ml-server\src\keyword_extractor.py:79:
+  ml-server\src\keyword_extractor.py:80:        for item in self.extract_domain_te
+rms(text):
+> ml-server\src\keyword_extractor.py:81:            result_map[item["keyword"]] = 
+item["score"]
+  ml-server\src\keyword_extractor.py:82:
+> ml-server\src\keyword_extractor.py:83:        normalized_sentences = [normalize_
+for_ml(sentence) for sentence in sentences]
+> ml-server\src\keyword_extractor.py:84:        normalized_sentences = [s for s in
+ normalized_sentences if s.strip()]
+  ml-server\src\keyword_extractor.py:85:
+> ml-server\src\keyword_extractor.py:86:        if normalized_sentences:
+> ml-server\src\keyword_extractor.py:87:            vectorizer = TfidfVectorizer(
+  ml-server\src\keyword_extractor.py:88:                ngram_range=(1, 2),
+  ml-server\src\keyword_extractor.py:89:                min_df=1,
+  ml-server\src\keyword_extractor.py:90:                max_df=0.95
+  ml-server\src\keyword_extractor.py:91:            )
+  ml-server\src\keyword_extractor.py:92:
+> ml-server\src\keyword_extractor.py:93:            matrix = vectorizer.fit_transf
+orm(normalized_sentences)
+  ml-server\src\keyword_extractor.py:94:            feature_names = vectorizer.get
+_feature_names_out()
+  ml-server\src\keyword_extractor.py:95:            scores = matrix.sum(axis=0).A1
+  ml-server\src\keyword_extractor.py:96:
+  ml-server\src\keyword_extractor.py:97:            ranked = sorted(
+  ml-server\src\keyword_extractor.py:101:            )
+  ml-server\src\keyword_extractor.py:102:
+> ml-server\src\keyword_extractor.py:103:            for keyword, score in ranked:
+> ml-server\src\keyword_extractor.py:104:                keyword = keyword.strip()
+.lower()
+  ml-server\src\keyword_extractor.py:105:
+> ml-server\src\keyword_extractor.py:106:                if not self.is_good_keywo
+rd(keyword):
+  ml-server\src\keyword_extractor.py:107:                    continue
+  ml-server\src\keyword_extractor.py:108:
+> ml-server\src\keyword_extractor.py:109:                if keyword not in result_
+map:
+> ml-server\src\keyword_extractor.py:110:                    result_map[keyword] =
+ float(score)
+  ml-server\src\keyword_extractor.py:111:
+  ml-server\src\keyword_extractor.py:112:        ranked_result = sorted(
+  ml-server\src\keyword_extractor.py:113:            result_map.items(),
+  ml-server\src\keyword_extractor.py:114:            key=lambda item: item[1],
+  ml-server\src\keyword_extractor.py:118:        return [
+  ml-server\src\keyword_extractor.py:119:            {
+> ml-server\src\keyword_extractor.py:120:                "keyword": keyword,
+  ml-server\src\keyword_extractor.py:121:                "score": round(float(scor
+e), 4)
+  ml-server\src\keyword_extractor.py:122:            }
+> ml-server\src\keyword_extractor.py:123:            for keyword, score in ranked_
+result[: self.max_keywords]
+  ml-server\src\keyword_extractor.py:124:        ]
+  ml-server\src\question_generator.py:3:import re
+  ml-server\src\question_generator.py:4:
+> ml-server\src\question_generator.py:5:from src.text_preprocessor import split_se
+ntences, tokenize
+> ml-server\src\question_generator.py:6:from src.answer_candidate_model import Ans
+werCandidateModel
+> ml-server\src\question_generator.py:7:from src.distractor_generator import Distr
+actorGenerator
+  ml-server\src\question_generator.py:8:
+  ml-server\src\question_generator.py:9:
+> ml-server\src\question_generator.py:10:BAD_ANSWERS = {
+  ml-server\src\question_generator.py:11:    "даних", "дані", "основі", "дозволяє"
+, "оцінюється", "використовується",
+  ml-server\src\question_generator.py:12:    "застосовується", "мають", "можуть", 
+"прикладу", "наприклад",
+  ml-server\src\question_generator.py:13:    "значень", "рейтингу", "температури",
+ "ціни", "готових", "правильних",
+  ml-server\src\question_generator.py:14:    "відповідей", "визначає", "складаєтьс
+я", "може", "знаходити",
+  ml-server\src\question_generator.py:56:
+  ml-server\src\question_generator.py:57:
+> ml-server\src\question_generator.py:58:class QuestionGenerator:
+  ml-server\src\question_generator.py:59:    def __init__(self):
+  ml-server\src\question_generator.py:60:        random.seed(42)
+> ml-server\src\question_generator.py:61:        self.answer_model = AnswerCandida
+teModel()
+> ml-server\src\question_generator.py:62:        self.answer_model.load()
+> ml-server\src\question_generator.py:63:        self.distractor_generator = Distr
+actorGenerator()
+  ml-server\src\question_generator.py:64:
+  ml-server\src\question_generator.py:65:    def clean_text(self, value: str) -> s
+tr:
+  ml-server\src\question_generator.py:66:        value = str(value).strip()
+  ml-server\src\question_generator.py:67:        value = re.sub(r"\s+", " ", value
+)
+  ml-server\src\question_generator.py:73:        return any(part in lower for part
+ in BAD_PHRASE_PARTS)
+  ml-server\src\question_generator.py:74:
+> ml-server\src\question_generator.py:75:    def sentence_has_term(self, sentence:
+ str, term: str) -> bool:
+> ml-server\src\question_generator.py:76:        return term.lower() in sentence.l
+ower()
+  ml-server\src\question_generator.py:77:
+> ml-server\src\question_generator.py:78:    def get_best_domain_term(self, senten
+ce: str) -> Optional[str]:
+  ml-server\src\question_generator.py:79:        for term in sorted(DOMAIN_TERMS, 
+key=len, reverse=True):
+> ml-server\src\question_generator.py:80:            if self.sentence_has_term(sen
+tence, term):
+  ml-server\src\question_generator.py:81:                return term
+  ml-server\src\question_generator.py:82:        return None
+  ml-server\src\question_generator.py:83:
+> ml-server\src\question_generator.py:84:    def is_good_short_answer(self, answer
+: str) -> bool:
+> ml-server\src\question_generator.py:85:        answer = self.clean_text(answer)
+> ml-server\src\question_generator.py:86:        lower = answer.lower()
+  ml-server\src\question_generator.py:87:
+> ml-server\src\question_generator.py:88:        if len(answer) < 4:
+  ml-server\src\question_generator.py:89:            return False
+  ml-server\src\question_generator.py:90:
+> ml-server\src\question_generator.py:91:        if lower in BAD_ANSWERS:
+  ml-server\src\question_generator.py:92:            return False
+  ml-server\src\question_generator.py:93:
+> ml-server\src\question_generator.py:94:        if self.has_bad_phrase(answer):
+  ml-server\src\question_generator.py:95:            return False
+  ml-server\src\question_generator.py:96:
+  ml-server\src\question_generator.py:97:        words = lower.split()
+  ml-server\src\question_generator.py:98:
+  ml-server\src\question_generator.py:100:            return False
+  ml-server\src\question_generator.py:101:
+> ml-server\src\question_generator.py:102:        if words[0] in BAD_ANSWERS or wo
+rds[-1] in BAD_ANSWERS:
+  ml-server\src\question_generator.py:103:            return False
+  ml-server\src\question_generator.py:104:
+  ml-server\src\question_generator.py:105:        return True
+  ml-server\src\question_generator.py:106:
+> ml-server\src\question_generator.py:107:    def is_good_long_answer(self, answer
+: str) -> bool:
+> ml-server\src\question_generator.py:108:        answer = self.clean_text(answer)
+> ml-server\src\question_generator.py:109:        lower = answer.lower()
+  ml-server\src\question_generator.py:110:
+> ml-server\src\question_generator.py:111:        if len(answer) < 6:
+  ml-server\src\question_generator.py:112:            return False
+  ml-server\src\question_generator.py:113:
+> ml-server\src\question_generator.py:114:        if self.has_bad_phrase(answer):
+  ml-server\src\question_generator.py:115:            return False
+  ml-server\src\question_generator.py:116:
+  ml-server\src\question_generator.py:117:        words = lower.split()
+  ml-server\src\question_generator.py:118:
+  ml-server\src\question_generator.py:120:            return False
+  ml-server\src\question_generator.py:121:
+> ml-server\src\question_generator.py:122:        if words[0] in BAD_ANSWERS or wo
+rds[-1] in BAD_ANSWERS:
+  ml-server\src\question_generator.py:123:            return False
+  ml-server\src\question_generator.py:124:
+  ml-server\src\question_generator.py:125:        return True
+  ml-server\src\question_generator.py:126:
+  ml-server\src\question_generator.py:127:    def make_options(
+  ml-server\src\question_generator.py:128:        self,
+> ml-server\src\question_generator.py:129:        correct_answer: str,
+> ml-server\src\question_generator.py:130:        answer_type: str,
+> ml-server\src\question_generator.py:131:        source_sentence: str,
+  ml-server\src\question_generator.py:132:        term: str = ""
+  ml-server\src\question_generator.py:133:    ):
+> ml-server\src\question_generator.py:134:        if answer_type == "long":
+> ml-server\src\question_generator.py:135:            distractors = self.distracto
+r_generator.generate_purpose_distractors(
+> ml-server\src\question_generator.py:136:                correct_answer=correct_a
+nswer,
+> ml-server\src\question_generator.py:137:                source_sentence=source_s
+entence,
+  ml-server\src\question_generator.py:138:                term=term,
+  ml-server\src\question_generator.py:139:            )
+  ml-server\src\question_generator.py:140:        else:
+> ml-server\src\question_generator.py:141:            distractors = self.distracto
+r_generator.generate_term_distractors(
+> ml-server\src\question_generator.py:142:                correct_answer=correct_a
+nswer,
+> ml-server\src\question_generator.py:143:                topic=term,
+  ml-server\src\question_generator.py:144:            )
+  ml-server\src\question_generator.py:145:
+> ml-server\src\question_generator.py:146:        options = [correct_answer] + dis
+tractors
+  ml-server\src\question_generator.py:147:        random.shuffle(options)
+  ml-server\src\question_generator.py:148:
+> ml-server\src\question_generator.py:149:        correct_index = options.index(co
+rrect_answer)
+  ml-server\src\question_generator.py:150:        correct_option = ["A", "B", "C",
+ "D"][correct_index]
+  ml-server\src\question_generator.py:151:
+  ml-server\src\question_generator.py:152:        return options, correct_option
+  ml-server\src\question_generator.py:153:
+> ml-server\src\question_generator.py:154:    def try_neural_layer_patterns(self, 
+sentence: str) -> Optional[Dict]:
+> ml-server\src\question_generator.py:155:        s = self.clean_text(sentence)
+  ml-server\src\question_generator.py:156:
+  ml-server\src\question_generator.py:157:        match = re.match(r"^Вхідний\s+ша
+р\s+приймає\s+(.+?)(,\s+які\s+.+)?\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:158:        if match:
+> ml-server\src\question_generator.py:159:            answer = self.clean_text(mat
+ch.group(1))
+  ml-server\src\question_generator.py:160:            return {
+> ml-server\src\question_generator.py:161:                "questionText": "Що прий
+має вхідний шар нейронної мережі?",
+> ml-server\src\question_generator.py:162:                "answer": answer,
+> ml-server\src\question_generator.py:163:                "answerType": "long",
+  ml-server\src\question_generator.py:164:                "term": "вхідний шар",
+  ml-server\src\question_generator.py:165:            }
+  ml-server\src\question_generator.py:166:
+  ml-server\src\question_generator.py:167:        match = re.match(r"^Вихідний\s+ш
+ар\s+формує\s+(.+?)(,\s+наприклад\s+.+)?\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:168:        if match:
+> ml-server\src\question_generator.py:169:            answer = self.clean_text(mat
+ch.group(1))
+  ml-server\src\question_generator.py:170:            return {
+> ml-server\src\question_generator.py:171:                "questionText": "Що форм
+ує вихідний шар нейронної мережі?",
+> ml-server\src\question_generator.py:172:                "answer": answer,
+> ml-server\src\question_generator.py:173:                "answerType": "long",
+  ml-server\src\question_generator.py:174:                "term": "вихідний шар",
+  ml-server\src\question_generator.py:175:            }
+  ml-server\src\question_generator.py:176:
+  ml-server\src\question_generator.py:177:        match = re.match(r"^Приховані\s+
+шари\s+виконують\s+(.+?)\s+і\s+дозволяють\s+моделі\s+знаходити\s+(.+?)\.?$", s, fl
+ags=re.IGNORECASE)
+  ml-server\src\question_generator.py:183:                second_part = "складних 
+закономірностей"
+  ml-server\src\question_generator.py:184:
+> ml-server\src\question_generator.py:185:            answer = self.clean_text(fir
+st_part + " і пошук " + second_part)
+  ml-server\src\question_generator.py:186:
+  ml-server\src\question_generator.py:187:            return {
+> ml-server\src\question_generator.py:188:                "questionText": "Яку рол
+ь виконують приховані шари нейронної мережі?",
+> ml-server\src\question_generator.py:189:                "answer": answer,
+> ml-server\src\question_generator.py:190:                "answerType": "long",
+  ml-server\src\question_generator.py:191:                "term": "приховані шари"
+,
+  ml-server\src\question_generator.py:192:            }
+  ml-server\src\question_generator.py:193:
+  ml-server\src\question_generator.py:194:        return None
+  ml-server\src\question_generator.py:195:
+> ml-server\src\question_generator.py:196:    def try_pattern_question(self, sente
+nce: str) -> Optional[Dict]:
+> ml-server\src\question_generator.py:197:        neural_result = self.try_neural_
+layer_patterns(sentence)
+  ml-server\src\question_generator.py:198:        if neural_result:
+  ml-server\src\question_generator.py:199:            return neural_result
+  ml-server\src\question_generator.py:200:
+> ml-server\src\question_generator.py:201:        s = self.clean_text(sentence)
+  ml-server\src\question_generator.py:202:
+  ml-server\src\question_generator.py:203:        match = re.match(r"^(.+?)\s+вико
+ристовується\s+для\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:204:        if match:
+  ml-server\src\question_generator.py:205:            term = self.clean_text(match
+.group(1))
+> ml-server\src\question_generator.py:206:            answer = self.clean_text("дл
+я " + match.group(2))
+  ml-server\src\question_generator.py:207:
+> ml-server\src\question_generator.py:208:            if self.is_good_short_answer
+(term) and self.is_good_long_answer(answer):
+  ml-server\src\question_generator.py:209:                return {
+> ml-server\src\question_generator.py:210:                    "questionText": f"Дл
+я чого використовується поняття «{term}»?",
+> ml-server\src\question_generator.py:211:                    "answer": answer,
+> ml-server\src\question_generator.py:212:                    "answerType": "long"
+,
+  ml-server\src\question_generator.py:213:                    "term": term,
+  ml-server\src\question_generator.py:214:                }
+  ml-server\src\question_generator.py:215:
+  ml-server\src\question_generator.py:216:        match = re.match(r"^(.+?)\s+заст
+осовується\s+тоді,\s+коли\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:217:        if match:
+  ml-server\src\question_generator.py:218:            term = self.clean_text(match
+.group(1))
+> ml-server\src\question_generator.py:219:            answer = self.clean_text("ко
+ли " + match.group(2))
+  ml-server\src\question_generator.py:220:
+> ml-server\src\question_generator.py:221:            if self.is_good_short_answer
+(term) and self.is_good_long_answer(answer):
+  ml-server\src\question_generator.py:222:                return {
+> ml-server\src\question_generator.py:223:                    "questionText": f"Ко
+ли застосовується поняття «{term}»?",
+> ml-server\src\question_generator.py:224:                    "answer": answer,
+> ml-server\src\question_generator.py:225:                    "answerType": "long"
+,
+  ml-server\src\question_generator.py:226:                    "term": term,
+  ml-server\src\question_generator.py:227:                }
+  ml-server\src\question_generator.py:228:
+  ml-server\src\question_generator.py:229:        match = re.match(r"^(.+?)\s+дозв
+оляє\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:230:        if match:
+  ml-server\src\question_generator.py:231:            term = self.clean_text(match
+.group(1))
+> ml-server\src\question_generator.py:232:            answer = self.clean_text(mat
+ch.group(2))
+  ml-server\src\question_generator.py:233:
+> ml-server\src\question_generator.py:234:            if self.is_good_short_answer
+(term) and self.is_good_long_answer(answer):
+  ml-server\src\question_generator.py:235:                return {
+> ml-server\src\question_generator.py:236:                    "questionText": f"Що
+ дозволяє виконувати поняття «{term}»?",
+> ml-server\src\question_generator.py:237:                    "answer": answer,
+> ml-server\src\question_generator.py:238:                    "answerType": "long"
+,
+  ml-server\src\question_generator.py:239:                    "term": term,
+  ml-server\src\question_generator.py:240:                }
+  ml-server\src\question_generator.py:241:
+  ml-server\src\question_generator.py:242:        match = re.match(r"^(.+?)\s+скла
+дається\s+з\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:243:        if match:
+  ml-server\src\question_generator.py:244:            term = self.clean_text(match
+.group(1))
+> ml-server\src\question_generator.py:245:            answer = self.clean_text("з 
+" + match.group(2))
+  ml-server\src\question_generator.py:246:
+> ml-server\src\question_generator.py:247:            if self.is_good_short_answer
+(term) and self.is_good_long_answer(answer):
+  ml-server\src\question_generator.py:248:                return {
+> ml-server\src\question_generator.py:249:                    "questionText": f"З 
+чого складається поняття «{term}»?",
+> ml-server\src\question_generator.py:250:                    "answer": answer,
+> ml-server\src\question_generator.py:251:                    "answerType": "long"
+,
+  ml-server\src\question_generator.py:252:                    "term": term,
+  ml-server\src\question_generator.py:253:                }
+  ml-server\src\question_generator.py:254:
+  ml-server\src\question_generator.py:255:        match = re.match(
+  ml-server\src\question_generator.py:259:        )
+  ml-server\src\question_generator.py:260:        if match:
+> ml-server\src\question_generator.py:261:            answer = self.clean_text(mat
+ch.group(2))
+  ml-server\src\question_generator.py:262:
+> ml-server\src\question_generator.py:263:            if self.is_good_long_answer(
+answer):
+  ml-server\src\question_generator.py:264:                return {
+> ml-server\src\question_generator.py:265:                    "questionText": "Які
+ метрики можуть використовуватися для оцінювання якості моделі?",
+> ml-server\src\question_generator.py:266:                    "answer": answer,
+> ml-server\src\question_generator.py:267:                    "answerType": "long"
+,
+  ml-server\src\question_generator.py:268:                    "term": "метрики яко
+сті",
+  ml-server\src\question_generator.py:269:                }
+  ml-server\src\question_generator.py:270:
+  ml-server\src\question_generator.py:271:        match = re.match(r"^(.+?)\s+є\s+
+задачею\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:273:            term = self.clean_text(match
+.group(1))
+  ml-server\src\question_generator.py:274:
+> ml-server\src\question_generator.py:275:            if self.is_good_short_answer
+(term):
+  ml-server\src\question_generator.py:276:                return {
+> ml-server\src\question_generator.py:277:                    "questionText": "Яке
+ поняття є задачею машинного навчання, описаною в твердженні?",
+> ml-server\src\question_generator.py:278:                    "answer": term,
+> ml-server\src\question_generator.py:279:                    "answerType": "term"
+,
+  ml-server\src\question_generator.py:280:                    "term": term,
+  ml-server\src\question_generator.py:281:                }
+  ml-server\src\question_generator.py:282:
+  ml-server\src\question_generator.py:283:        match = re.match(r"^(.+?)\s+—\s+
+це\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+  ml-server\src\question_generator.py:284:        if match:
+  ml-server\src\question_generator.py:285:            term = self.clean_text(match
+.group(1))
+> ml-server\src\question_generator.py:286:            answer = self.clean_text(mat
+ch.group(2))
+  ml-server\src\question_generator.py:287:
+> ml-server\src\question_generator.py:288:            if self.is_good_short_answer
+(term) and self.is_good_long_answer(answer):
+  ml-server\src\question_generator.py:289:                return {
+> ml-server\src\question_generator.py:290:                    "questionText": f"Що
+ таке «{term}»?",
+> ml-server\src\question_generator.py:291:                    "answer": answer,
+> ml-server\src\question_generator.py:292:                    "answerType": "long"
+,
+  ml-server\src\question_generator.py:293:                    "term": term,
+  ml-server\src\question_generator.py:294:                }
+  ml-server\src\question_generator.py:295:
+  ml-server\src\question_generator.py:296:        return None
+  ml-server\src\question_generator.py:297:
+> ml-server\src\question_generator.py:298:    def find_answer_in_sentence(
+  ml-server\src\question_generator.py:299:        self,
+> ml-server\src\question_generator.py:300:        sentence: str,
+> ml-server\src\question_generator.py:301:        keywords: List[str],
+  ml-server\src\question_generator.py:302:        context: str = ""
+  ml-server\src\question_generator.py:303:    ) -> Optional[str]:
+> ml-server\src\question_generator.py:304:        domain_term = self.get_best_doma
+in_term(sentence)
+  ml-server\src\question_generator.py:305:
+> ml-server\src\question_generator.py:306:        if domain_term and self.is_good_
+short_answer(domain_term):
+  ml-server\src\question_generator.py:307:            return domain_term
+  ml-server\src\question_generator.py:308:
+> ml-server\src\question_generator.py:309:        ranked = self.answer_model.rank_
+candidates(
+> ml-server\src\question_generator.py:310:            sentence=sentence,
+> ml-server\src\question_generator.py:311:            context=context or sentence,
+  ml-server\src\question_generator.py:312:            limit=20
+  ml-server\src\question_generator.py:313:        )
+  ml-server\src\question_generator.py:314:
+  ml-server\src\question_generator.py:315:        for item in ranked:
+  ml-server\src\question_generator.py:316:            candidate = self.clean_text(
+item["candidate"])
+  ml-server\src\question_generator.py:317:
+> ml-server\src\question_generator.py:318:            if self.is_good_short_answer
+(candidate):
+  ml-server\src\question_generator.py:319:                return candidate
+  ml-server\src\question_generator.py:320:
+> ml-server\src\question_generator.py:321:        for keyword in sorted(keywords, 
+key=len, reverse=True):
+> ml-server\src\question_generator.py:322:            keyword = self.clean_text(ke
+yword)
+  ml-server\src\question_generator.py:323:
+> ml-server\src\question_generator.py:324:            if keyword.lower() in senten
+ce.lower() and self.is_good_short_answer(keyword):
+> ml-server\src\question_generator.py:325:                return keyword
+  ml-server\src\question_generator.py:326:
+> ml-server\src\question_generator.py:327:        tokens = tokenize(sentence)
+> ml-server\src\question_generator.py:328:        candidates = [token for token in
+ tokens if self.is_good_short_answer(token)]
+  ml-server\src\question_generator.py:329:
+  ml-server\src\question_generator.py:330:        if not candidates:
+  ml-server\src\question_generator.py:331:            return None
+  ml-server\src\question_generator.py:332:
+  ml-server\src\question_generator.py:333:        return max(candidates, key=len)
+  ml-server\src\question_generator.py:334:
+> ml-server\src\question_generator.py:335:    def make_cloze_question(self, senten
+ce: str, answer: str) -> str:
+> ml-server\src\question_generator.py:336:        pattern = re.compile(re.escape(a
+nswer), re.IGNORECASE)
+> ml-server\src\question_generator.py:337:        masked = pattern.sub("__________
+", sentence, count=1)
+  ml-server\src\question_generator.py:338:
+> ml-server\src\question_generator.py:339:        if masked != sentence:
+  ml-server\src\question_generator.py:340:            return f"Яке поняття пропуще
+но в твердженні: «{masked}»?"
+  ml-server\src\question_generator.py:341:
+> ml-server\src\question_generator.py:342:        return f"Яке поняття найкраще ві
+дповідає твердженню: «{sentence}»?"
+  ml-server\src\question_generator.py:343:
+> ml-server\src\question_generator.py:344:    def build_question(
+  ml-server\src\question_generator.py:345:        self,
+> ml-server\src\question_generator.py:346:        question_text: str,
+> ml-server\src\question_generator.py:347:        answer: str,
+> ml-server\src\question_generator.py:348:        topic: str,
+> ml-server\src\question_generator.py:349:        difficulty: int,
+  ml-server\src\question_generator.py:350:        order: int,
+> ml-server\src\question_generator.py:351:        source_sentence: str,
+> ml-server\src\question_generator.py:352:        answer_type: str = "term",
+  ml-server\src\question_generator.py:353:        term: str = ""
+  ml-server\src\question_generator.py:354:    ) -> Dict:
+  ml-server\src\question_generator.py:355:        options, correct_option = self.m
+ake_options(
+> ml-server\src\question_generator.py:356:            correct_answer=answer,
+> ml-server\src\question_generator.py:357:            answer_type=answer_type,
+> ml-server\src\question_generator.py:358:            source_sentence=source_sente
+nce,
+  ml-server\src\question_generator.py:359:            term=term,
+  ml-server\src\question_generator.py:360:        )
+  ml-server\src\question_generator.py:361:
+  ml-server\src\question_generator.py:362:        return {
+> ml-server\src\question_generator.py:363:            "questionText": question_tex
+t,
+  ml-server\src\question_generator.py:364:            "optionA": options[0],
+  ml-server\src\question_generator.py:365:            "optionB": options[1],
+  ml-server\src\question_generator.py:366:            "optionC": options[2],
+  ml-server\src\question_generator.py:367:            "optionD": options[3],
+  ml-server\src\question_generator.py:368:            "correctOption": correct_opt
+ion,
+> ml-server\src\question_generator.py:369:            "explanation": f"Правильна в
+ідповідь: «{answer}», оскільки це випливає з навчального матеріалу.",
+> ml-server\src\question_generator.py:370:            "topic": topic,
+> ml-server\src\question_generator.py:371:            "difficulty": difficulty,
+> ml-server\src\question_generator.py:372:            "questionOrder": order,
+> ml-server\src\question_generator.py:373:            "sourceSentence": source_sen
+tence
+  ml-server\src\question_generator.py:374:        }
+  ml-server\src\question_generator.py:375:
+> ml-server\src\question_generator.py:376:    def generate_questions(
+  ml-server\src\question_generator.py:377:        self,
+  ml-server\src\question_generator.py:378:        text: str,
+> ml-server\src\question_generator.py:379:        keywords: List[str],
+> ml-server\src\question_generator.py:380:        difficulty_model,
+> ml-server\src\question_generator.py:381:        topic: str,
+  ml-server\src\question_generator.py:382:        count: int = 5
+  ml-server\src\question_generator.py:383:    ) -> List[Dict]:
+> ml-server\src\question_generator.py:384:        sentences = split_sentences(text
+)
+  ml-server\src\question_generator.py:385:
+> ml-server\src\question_generator.py:386:        if not sentences:
+  ml-server\src\question_generator.py:387:            return []
+  ml-server\src\question_generator.py:388:
+> ml-server\src\question_generator.py:389:        questions = []
+> ml-server\src\question_generator.py:390:        used_answers = set()
+> ml-server\src\question_generator.py:391:        used_sentences = set()
+  ml-server\src\question_generator.py:392:
+> ml-server\src\question_generator.py:393:        keyword_set = set([k.lower() for
+ k in keywords])
+  ml-server\src\question_generator.py:394:
+> ml-server\src\question_generator.py:395:        ranked_sentences = sorted(
+> ml-server\src\question_generator.py:396:            sentences,
+  ml-server\src\question_generator.py:397:            key=lambda s: (
+> ml-server\src\question_generator.py:398:                len(set(tokenize(s)) & k
+eyword_set),
+  ml-server\src\question_generator.py:399:                len(s)
+  ml-server\src\question_generator.py:400:            ),
+  ml-server\src\question_generator.py:401:            reverse=True
+  ml-server\src\question_generator.py:402:        )
+  ml-server\src\question_generator.py:403:
+> ml-server\src\question_generator.py:404:        for sentence in ranked_sentences
+:
+> ml-server\src\question_generator.py:405:            if len(questions) >= count:
+  ml-server\src\question_generator.py:406:                break
+  ml-server\src\question_generator.py:407:
+> ml-server\src\question_generator.py:408:            if sentence in used_sentence
+s:
+  ml-server\src\question_generator.py:409:                continue
+  ml-server\src\question_generator.py:410:
+> ml-server\src\question_generator.py:411:            pattern_result = self.try_pa
+ttern_question(sentence)
+  ml-server\src\question_generator.py:412:
+> ml-server\src\question_generator.py:413:            if not pattern_result:
+  ml-server\src\question_generator.py:414:                continue
+  ml-server\src\question_generator.py:415:
+> ml-server\src\question_generator.py:416:            answer = self.clean_text(pat
+tern_result["answer"])
+  ml-server\src\question_generator.py:417:
+> ml-server\src\question_generator.py:418:            if not self.is_good_long_ans
+wer(answer) and pattern_result["answerType"] == "long":
+  ml-server\src\question_generator.py:419:                continue
+  ml-server\src\question_generator.py:420:
+> ml-server\src\question_generator.py:421:            if answer.lower() in used_an
+swers:
+  ml-server\src\question_generator.py:422:                continue
+  ml-server\src\question_generator.py:423:
+> ml-server\src\question_generator.py:424:            used_answers.add(answer.lowe
+r())
+> ml-server\src\question_generator.py:425:            used_sentences.add(sentence)
+  ml-server\src\question_generator.py:426:
+> ml-server\src\question_generator.py:427:            difficulty = difficulty_mode
+l.predict(sentence)
+  ml-server\src\question_generator.py:428:
+> ml-server\src\question_generator.py:429:            questions.append(
+> ml-server\src\question_generator.py:430:                self.build_question(
+> ml-server\src\question_generator.py:431:                    question_text=patter
+n_result["questionText"],
+> ml-server\src\question_generator.py:432:                    answer=answer,
+> ml-server\src\question_generator.py:433:                    topic=topic,
+> ml-server\src\question_generator.py:434:                    difficulty=difficult
+y,
+> ml-server\src\question_generator.py:435:                    order=len(questions)
+ + 1,
+> ml-server\src\question_generator.py:436:                    source_sentence=sent
+ence,
+> ml-server\src\question_generator.py:437:                    answer_type=pattern_
+result["answerType"],
+> ml-server\src\question_generator.py:438:                    term=pattern_result.
+get("term", ""),
+  ml-server\src\question_generator.py:439:                )
+  ml-server\src\question_generator.py:440:            )
+  ml-server\src\question_generator.py:441:
+> ml-server\src\question_generator.py:442:        for sentence in ranked_sentences
+:
+> ml-server\src\question_generator.py:443:            if len(questions) >= count:
+  ml-server\src\question_generator.py:444:                break
+  ml-server\src\question_generator.py:445:
+> ml-server\src\question_generator.py:446:            if sentence in used_sentence
+s:
+  ml-server\src\question_generator.py:447:                continue
+  ml-server\src\question_generator.py:448:
+> ml-server\src\question_generator.py:449:            answer = self.find_answer_in
+_sentence(
+> ml-server\src\question_generator.py:450:                sentence=sentence,
+> ml-server\src\question_generator.py:451:                keywords=keywords,
+  ml-server\src\question_generator.py:452:                context=text
+  ml-server\src\question_generator.py:453:            )
+  ml-server\src\question_generator.py:454:
+> ml-server\src\question_generator.py:455:            if not answer:
+  ml-server\src\question_generator.py:456:                continue
+  ml-server\src\question_generator.py:457:
+> ml-server\src\question_generator.py:458:            answer = self.clean_text(ans
+wer)
+  ml-server\src\question_generator.py:459:
+> ml-server\src\question_generator.py:460:            if not self.is_good_short_an
+swer(answer):
+  ml-server\src\question_generator.py:461:                continue
+  ml-server\src\question_generator.py:462:
+> ml-server\src\question_generator.py:463:            if answer.lower() in used_an
+swers:
+  ml-server\src\question_generator.py:464:                continue
+  ml-server\src\question_generator.py:465:
+> ml-server\src\question_generator.py:466:            used_answers.add(answer.lowe
+r())
+> ml-server\src\question_generator.py:467:            used_sentences.add(sentence)
+  ml-server\src\question_generator.py:468:
+> ml-server\src\question_generator.py:469:            difficulty = difficulty_mode
+l.predict(sentence)
+> ml-server\src\question_generator.py:470:            question_text = self.make_cl
+oze_question(sentence, answer)
+  ml-server\src\question_generator.py:471:
+> ml-server\src\question_generator.py:472:            questions.append(
+> ml-server\src\question_generator.py:473:                self.build_question(
+> ml-server\src\question_generator.py:474:                    question_text=questi
+on_text,
+> ml-server\src\question_generator.py:475:                    answer=answer,
+> ml-server\src\question_generator.py:476:                    topic=topic,
+> ml-server\src\question_generator.py:477:                    difficulty=difficult
+y,
+> ml-server\src\question_generator.py:478:                    order=len(questions)
+ + 1,
+> ml-server\src\question_generator.py:479:                    source_sentence=sent
+ence,
+> ml-server\src\question_generator.py:480:                    answer_type="term",
+> ml-server\src\question_generator.py:481:                    term=answer,
+  ml-server\src\question_generator.py:482:                )
+  ml-server\src\question_generator.py:483:            )
+  ml-server\src\question_generator.py:484:
+> ml-server\src\question_generator.py:485:        return questions
+  ml-server\src\quiz_pipeline.py:1:from typing import Dict
+  ml-server\src\quiz_pipeline.py:2:
+> ml-server\src\quiz_pipeline.py:3:from src.text_preprocessor import split_sentenc
+es
+> ml-server\src\quiz_pipeline.py:4:from src.keyword_extractor import KeywordExtrac
+tor
+> ml-server\src\quiz_pipeline.py:5:from src.topic_model import TopicModel
+> ml-server\src\quiz_pipeline.py:6:from src.difficulty_model import DifficultyMode
+l
+> ml-server\src\quiz_pipeline.py:7:from src.question_generator import QuestionGene
+rator
+  ml-server\src\quiz_pipeline.py:8:
+  ml-server\src\quiz_pipeline.py:9:
+  ml-server\src\quiz_pipeline.py:10:class QuizPipeline:
+  ml-server\src\quiz_pipeline.py:11:    def __init__(self):
+> ml-server\src\quiz_pipeline.py:12:        self.keyword_extractor = KeywordExtrac
+tor(max_keywords=20)
+> ml-server\src\quiz_pipeline.py:13:        self.topic_model = TopicModel(max_topi
+cs=3)
+> ml-server\src\quiz_pipeline.py:14:        self.difficulty_model = DifficultyMode
+l()
+> ml-server\src\quiz_pipeline.py:15:        self.question_generator = QuestionGene
+rator()
+  ml-server\src\quiz_pipeline.py:16:
+> ml-server\src\quiz_pipeline.py:17:    def generate_quiz(self, title: str, text: 
+str, question_count: int = 5) -> Dict:
+> ml-server\src\quiz_pipeline.py:18:        sentences = split_sentences(text)
+  ml-server\src\quiz_pipeline.py:19:
+> ml-server\src\quiz_pipeline.py:20:        if len(sentences) < 2:
+  ml-server\src\quiz_pipeline.py:21:            return {
+  ml-server\src\quiz_pipeline.py:22:                "title": f"Тест: {title}",
+  ml-server\src\quiz_pipeline.py:23:                "source": "local_ml_pipeline",
+  ml-server\src\quiz_pipeline.py:24:                "error": "Недостатньо навчальн
+ого тексту для генерації тесту.",
+> ml-server\src\quiz_pipeline.py:25:                "questions": [],
+> ml-server\src\quiz_pipeline.py:26:                "keywords": [],
+> ml-server\src\quiz_pipeline.py:27:                "topics": []
+  ml-server\src\quiz_pipeline.py:28:            }
+  ml-server\src\quiz_pipeline.py:29:
+> ml-server\src\quiz_pipeline.py:30:        self.difficulty_model.train(sentences)
+  ml-server\src\quiz_pipeline.py:31:
+> ml-server\src\quiz_pipeline.py:32:        keyword_items = self.keyword_extractor
+.extract_keywords(text)
+> ml-server\src\quiz_pipeline.py:33:        keywords = [item["keyword"] for item i
+n keyword_items]
+  ml-server\src\quiz_pipeline.py:34:
+> ml-server\src\quiz_pipeline.py:35:        topics = self.topic_model.detect_topic
+s(text)
+  ml-server\src\quiz_pipeline.py:36:
+> ml-server\src\quiz_pipeline.py:37:        main_topic = title if title else "Навч
+альний матеріал"
+  ml-server\src\quiz_pipeline.py:38:
+> ml-server\src\quiz_pipeline.py:39:        questions = self.question_generator.ge
+nerate_questions(
+  ml-server\src\quiz_pipeline.py:40:            text=text,
+> ml-server\src\quiz_pipeline.py:41:            keywords=keywords,
+> ml-server\src\quiz_pipeline.py:42:            difficulty_model=self.difficulty_m
+odel,
+> ml-server\src\quiz_pipeline.py:43:            topic=main_topic,
+> ml-server\src\quiz_pipeline.py:44:            count=question_count
+  ml-server\src\quiz_pipeline.py:45:        )
+  ml-server\src\quiz_pipeline.py:46:
+  ml-server\src\quiz_pipeline.py:47:        return {
+  ml-server\src\quiz_pipeline.py:48:            "title": f"Тест: {title}",
+  ml-server\src\quiz_pipeline.py:49:            "source": "local_ml_pipeline",
+  ml-server\src\quiz_pipeline.py:50:            "modelDescription": {
+> ml-server\src\quiz_pipeline.py:51:                "textAnalysis": "TF-IDF keywor
+d extraction",
+> ml-server\src\quiz_pipeline.py:52:                "topicDetection": "KMeans clus
+tering over TF-IDF sentence vectors",
+> ml-server\src\quiz_pipeline.py:53:                "difficultyPrediction": "Rando
+mForestClassifier over sentence features",
+> ml-server\src\quiz_pipeline.py:54:                "questionGeneration": "ML-assi
+sted extractive question generation"
+  ml-server\src\quiz_pipeline.py:55:            },
+  ml-server\src\quiz_pipeline.py:56:            "statistics": {
+> ml-server\src\quiz_pipeline.py:57:                "sentenceCount": len(sentences
+),
+> ml-server\src\quiz_pipeline.py:58:                "keywordCount": len(keywords),
+> ml-server\src\quiz_pipeline.py:59:                "topicCount": len(topics),
+> ml-server\src\quiz_pipeline.py:60:                "questionCount": len(questions
+)
+  ml-server\src\quiz_pipeline.py:61:            },
+> ml-server\src\quiz_pipeline.py:62:            "keywords": keyword_items,
+> ml-server\src\quiz_pipeline.py:63:            "topics": topics,
+> ml-server\src\quiz_pipeline.py:64:            "questions": questions,
+  ml-server\src\quiz_pipeline.py:65:            "error": None
+  ml-server\src\quiz_pipeline.py:66:        }
+  ml-server\src\quiz_routes.py:12:
+  ml-server\src\quiz_routes.py:13:
+> ml-server\src\quiz_routes.py:14:class QuizGenerateRequest(BaseModel):
+  ml-server\src\quiz_routes.py:15:    title: str = Field(..., min_length=2, descri
+ption="Назва теми або уроку")
+  ml-server\src\quiz_routes.py:16:    text: str = Field(..., min_length=80, descri
+ption="Навчальний текст для аналізу")
+> ml-server\src\quiz_routes.py:17:    questionCount: Optional[int] = Field(default
+=5, ge=1, le=15)
+  ml-server\src\quiz_routes.py:18:
+  ml-server\src\quiz_routes.py:19:
+  ml-server\src\quiz_routes.py:20:@router.get("/health")
+  ml-server\src\quiz_routes.py:21:def quiz_health():
+  ml-server\src\quiz_routes.py:27:
+  ml-server\src\quiz_routes.py:28:
+> ml-server\src\quiz_routes.py:29:@router.post("/generate")
+> ml-server\src\quiz_routes.py:30:def generate_quiz(request: QuizGenerateRequest):
+> ml-server\src\quiz_routes.py:31:    quiz = pipeline.generate_quiz(
+  ml-server\src\quiz_routes.py:32:        title=request.title,
+  ml-server\src\quiz_routes.py:33:        text=request.text,
+> ml-server\src\quiz_routes.py:34:        question_count=request.questionCount or 
+5
+  ml-server\src\quiz_routes.py:35:    )
+  ml-server\src\quiz_routes.py:36:
+  ml-server\src\quiz_routes.py:37:    return quiz
+  ml-server\src\text_preprocessor.py:23:
+  ml-server\src\text_preprocessor.py:24:
+> ml-server\src\text_preprocessor.py:25:def split_sentences(text: str) -> List[str
+]:
+  ml-server\src\text_preprocessor.py:26:    text = clean_text(text)
+  ml-server\src\text_preprocessor.py:27:
+> ml-server\src\text_preprocessor.py:28:    raw_sentences = re.split(r"(?<=[.!?])\
+s+", text)
+> ml-server\src\text_preprocessor.py:29:    sentences = []
+  ml-server\src\text_preprocessor.py:30:
+> ml-server\src\text_preprocessor.py:31:    for sentence in raw_sentences:
+> ml-server\src\text_preprocessor.py:32:        sentence = sentence.strip()
+> ml-server\src\text_preprocessor.py:33:        words = sentence.split()
+  ml-server\src\text_preprocessor.py:34:
+  ml-server\src\text_preprocessor.py:35:        if len(words) >= 6:
+> ml-server\src\text_preprocessor.py:36:            sentences.append(sentence)
+  ml-server\src\text_preprocessor.py:37:
+> ml-server\src\text_preprocessor.py:38:    return sentences
+  ml-server\src\text_preprocessor.py:39:
+  ml-server\src\text_preprocessor.py:40:
+  ml-server\src\text_preprocessor.py:41:def tokenize(text: str) -> List[str]:
+  ml-server\src\text_preprocessor.py:42:    text = text.lower()
+  ml-server\src\topic_model.py:1:from typing import List, Dict
+> ml-server\src\topic_model.py:2:from sklearn.feature_extraction.text import Tfidf
+Vectorizer
+> ml-server\src\topic_model.py:3:from sklearn.cluster import KMeans
+  ml-server\src\topic_model.py:4:
+> ml-server\src\topic_model.py:5:from src.text_preprocessor import split_sentences
+, normalize_for_ml
+  ml-server\src\topic_model.py:6:
+  ml-server\src\topic_model.py:7:
+> ml-server\src\topic_model.py:8:class TopicModel:
+> ml-server\src\topic_model.py:9:    def __init__(self, max_topics: int = 3):
+> ml-server\src\topic_model.py:10:        self.max_topics = max_topics
+  ml-server\src\topic_model.py:11:
+> ml-server\src\topic_model.py:12:    def detect_topics(self, text: str) -> List[D
+ict]:
+> ml-server\src\topic_model.py:13:        sentences = split_sentences(text)
+  ml-server\src\topic_model.py:14:
+> ml-server\src\topic_model.py:15:        if len(sentences) < 3:
+  ml-server\src\topic_model.py:16:            return [{
+> ml-server\src\topic_model.py:17:                "topicId": 0,
+  ml-server\src\topic_model.py:18:                "title": "Основна тема",
+> ml-server\src\topic_model.py:19:                "sentences": sentences
+  ml-server\src\topic_model.py:20:            }]
+  ml-server\src\topic_model.py:21:
+> ml-server\src\topic_model.py:22:        normalized = [normalize_for_ml(sentence)
+ for sentence in sentences]
+  ml-server\src\topic_model.py:23:        normalized = [item for item in normalize
+d if item.strip()]
+  ml-server\src\topic_model.py:24:
+  ml-server\src\topic_model.py:25:        if len(normalized) < 3:
+  ml-server\src\topic_model.py:26:            return [{
+> ml-server\src\topic_model.py:27:                "topicId": 0,
+  ml-server\src\topic_model.py:28:                "title": "Основна тема",
+> ml-server\src\topic_model.py:29:                "sentences": sentences
+  ml-server\src\topic_model.py:30:            }]
+  ml-server\src\topic_model.py:31:
+> ml-server\src\topic_model.py:32:        topic_count = min(self.max_topics, len(n
+ormalized))
+  ml-server\src\topic_model.py:33:
+> ml-server\src\topic_model.py:34:        vectorizer = TfidfVectorizer(
+  ml-server\src\topic_model.py:35:            ngram_range=(1, 2),
+  ml-server\src\topic_model.py:36:            min_df=1
+  ml-server\src\topic_model.py:37:        )
+  ml-server\src\topic_model.py:38:
+  ml-server\src\topic_model.py:39:        matrix = vectorizer.fit_transform(normal
+ized)
+  ml-server\src\topic_model.py:40:
+> ml-server\src\topic_model.py:41:        model = KMeans(
+> ml-server\src\topic_model.py:42:            n_clusters=topic_count,
+  ml-server\src\topic_model.py:43:            random_state=42,
+  ml-server\src\topic_model.py:44:            n_init=10
+  ml-server\src\topic_model.py:45:        )
+  ml-server\src\topic_model.py:46:
+  ml-server\src\topic_model.py:47:        labels = model.fit_predict(matrix)
+  ml-server\src\topic_model.py:48:
+> ml-server\src\topic_model.py:49:        topics = []
+  ml-server\src\topic_model.py:50:
+> ml-server\src\topic_model.py:51:        for topic_id in range(topic_count):
+> ml-server\src\topic_model.py:52:            topic_sentences = [
+> ml-server\src\topic_model.py:53:                sentences[i]
+  ml-server\src\topic_model.py:54:                for i, label in enumerate(labels
+)
+> ml-server\src\topic_model.py:55:                if label == topic_id
+  ml-server\src\topic_model.py:56:            ]
+  ml-server\src\topic_model.py:57:
+> ml-server\src\topic_model.py:58:            if not topic_sentences:
+  ml-server\src\topic_model.py:59:                continue
+  ml-server\src\topic_model.py:60:
+> ml-server\src\topic_model.py:61:            topics.append({
+> ml-server\src\topic_model.py:62:                "topicId": int(topic_id),
+> ml-server\src\topic_model.py:63:                "title": f"Тема {topic_id + 1}",
+> ml-server\src\topic_model.py:64:                "sentences": topic_sentences
+  ml-server\src\topic_model.py:65:            })
+  ml-server\src\topic_model.py:66:
+> ml-server\src\topic_model.py:67:        return topics
+  ml-server\src\train_quiz_models.py:3:
+  ml-server\src\train_quiz_models.py:4:from src.dataset_loader import prepare_qa_d
+ataset, load_prepared_dataset
+> ml-server\src\train_quiz_models.py:5:from src.answer_candidate_model import Answ
+erCandidateModel, MODEL_PATH
+  ml-server\src\train_quiz_models.py:6:
+  ml-server\src\train_quiz_models.py:7:
+  ml-server\src\train_quiz_models.py:8:REPORT_PATH = Path(__file__).resolve().pare
+nts[1] / "models" / "training_report.json"
+  ml-server\src\train_quiz_models.py:9:
+  ml-server\src\train_quiz_models.py:17:    print(f"Dataset records: {len(dataset)
+}")
+  ml-server\src\train_quiz_models.py:18:
+> ml-server\src\train_quiz_models.py:19:    model = AnswerCandidateModel()
+  ml-server\src\train_quiz_models.py:20:
+  ml-server\src\train_quiz_models.py:21:    report = model.train(
+  ml-server\src\train_quiz_models.py:22:        dataset=dataset,
+  ml-server\src\train_quiz_models.py:23:        max_records=min(2500, len(dataset)
+)
+  ml-server\src\train_quiz_models.py:31:        json.dump(report, file, ensure_asc
+ii=False, indent=2)
+  ml-server\src\train_quiz_models.py:32:
+> ml-server\src\train_quiz_models.py:33:    print("Answer candidate model trained.
+")
+  ml-server\src\train_quiz_models.py:34:    print(f"Model saved to: {MODEL_PATH}")
+  ml-server\src\train_quiz_models.py:35:    print(f"Report saved to: {REPORT_PATH}
+")
+  ml-server\src\train_quiz_models.py:36:    print(json.dumps(report, ensure_ascii=
+False, indent=2))
+  ml-server\src\train_quiz_models.py:37:
+
+

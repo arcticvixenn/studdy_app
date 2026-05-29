@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -28,7 +28,8 @@ const categories = [
 const types = [
   { key: 'text', label: 'Текст' },
   { key: 'image', label: 'Фото' },
-  { key: 'video', label: 'Відео' },
+  { key: 'video', label: 'Велике відео' },
+  { key: 'short_video', label: 'Shorts' },
 ];
 
 const Create = () => {
@@ -100,7 +101,11 @@ const Create = () => {
     }
 
     if (form.mediaType === 'video' && (!form.video || !form.thumbnail)) {
-      return Alert.alert('Помилка', 'Додай відео та обкладинку.');
+      return Alert.alert('Помилка', 'Для великого відео додай відео та обкладинку.');
+    }
+
+    if (form.mediaType === 'short_video' && !form.video) {
+      return Alert.alert('Помилка', 'Додай коротке відео.');
     }
 
     setPublishing(true);
@@ -120,7 +125,11 @@ const Create = () => {
         thumbnail: null,
       });
 
-      router.replace('/home');
+      if (form.mediaType === 'short_video') {
+        router.replace('/videos');
+      } else {
+        router.replace('/home');
+      }
     } catch (error) {
       Alert.alert('Помилка', error.message || 'Не вдалося створити пост.');
     } finally {
@@ -141,7 +150,8 @@ const Create = () => {
         </Text>
 
         <Text className="text-gray-100 text-sm mt-2 mb-6">
-          Тут можна створити публікацію для стрічки або навчальний курс.
+          Створи текстову публікацію, фото, велике відео для головної стрічки
+          або коротке відео для Shorts.
         </Text>
 
         <TouchableOpacity
@@ -160,16 +170,16 @@ const Create = () => {
 
         <View className="bg-black-100 border border-black-200 rounded-2xl p-4 mb-6">
           <Text className="text-white text-xl font-psemibold mb-2">
-            Створити публікацію
+            Тип публікації
           </Text>
 
           <Text className="text-gray-100 text-sm leading-5">
-            Публікації з’являються у головній стрічці та можуть містити текст,
-            фото або відео.
+            Великі відео з обкладинкою з’являються у головній стрічці.
+            Shorts відкриваються окремо у вкладці “Відео”.
           </Text>
         </View>
 
-        <View className="flex-row mb-6">
+        <View className="flex-row flex-wrap mb-6">
           {types.map((type) => (
             <TouchableOpacity
               key={type.key}
@@ -182,7 +192,7 @@ const Create = () => {
                   thumbnail: null,
                 }))
               }
-              className={`mr-3 px-4 py-3 rounded-full border ${
+              className={`mr-3 mb-3 px-4 py-3 rounded-full border ${
                 form.mediaType === type.key
                   ? 'bg-secondary border-secondary'
                   : 'bg-black-100 border-black-200'
@@ -204,7 +214,11 @@ const Create = () => {
         <FormField
           title="Заголовок"
           value={form.title}
-          placeholder="Наприклад: Як працює backpropagation"
+          placeholder={
+            form.mediaType === 'short_video'
+              ? 'Наприклад: Що таке кластеризація за 30 секунд'
+              : 'Наприклад: Як працює backpropagation'
+          }
           handleChangeText={(value) =>
             setForm((prev) => ({ ...prev, title: value }))
           }
@@ -212,7 +226,7 @@ const Create = () => {
         />
 
         <FormField
-          title="Опис"
+          title={form.mediaType === 'short_video' ? 'Короткий опис' : 'Опис'}
           value={form.content}
           placeholder="Напиши коротке пояснення..."
           handleChangeText={(value) =>
@@ -253,7 +267,7 @@ const Create = () => {
           ))}
         </View>
 
-        {form.mediaType === 'image' && (
+        {form.mediaType === 'image' ? (
           <TouchableOpacity
             onPress={() => pickImage('image')}
             className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
@@ -262,16 +276,16 @@ const Create = () => {
               {form.image ? 'Зображення обрано ✓' : 'Обрати зображення'}
             </Text>
           </TouchableOpacity>
-        )}
+        ) : null}
 
-        {form.mediaType === 'video' && (
+        {form.mediaType === 'video' ? (
           <>
             <TouchableOpacity
               onPress={pickVideo}
               className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-4"
             >
               <Text className="text-white font-pmedium">
-                {form.video ? 'Відео обрано ✓' : 'Обрати відео'}
+                {form.video ? 'Відео обрано ✓' : 'Обрати велике відео'}
               </Text>
             </TouchableOpacity>
 
@@ -280,11 +294,26 @@ const Create = () => {
               className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
             >
               <Text className="text-white font-pmedium">
-                {form.thumbnail ? 'Обкладинку обрано ✓' : 'Обрати обкладинку'}
+                {form.thumbnail ? 'Обкладинку обрано ✓' : 'Обрати обкладинку для головної стрічки'}
               </Text>
             </TouchableOpacity>
           </>
-        )}
+        ) : null}
+
+        {form.mediaType === 'short_video' ? (
+          <TouchableOpacity
+            onPress={pickVideo}
+            className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6 px-4"
+          >
+            <Text className="text-white font-pmedium text-center">
+              {form.video ? 'Коротке відео обрано ✓' : 'Обрати коротке відео'}
+            </Text>
+
+            <Text className="text-gray-100 text-xs mt-2 text-center">
+              Обкладинка не потрібна — відео відкриватиметься напряму у Shorts.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
 
         <CustomButton
           title="Опублікувати"

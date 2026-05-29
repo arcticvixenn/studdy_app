@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "title": "Біологія: клітина",
+      "requested": 7,
+      "created": 7,
+      "issues": [],
+      "issueCount": 0,
+      "qualityScore": 100
+    },
+    {
+      "title": "Економіка: ринок",
+      "requested": 6,
+      "created": 6,
+      "issues": [],
+      "issueCount": 0,
+      "qualityScore": 100
+    },
+    {
+      "title": "Історія: реформи",
+      "requested": 6,
+      "created": 6,
+      "issues": [],
+      "issueCount": 0,
+      "qualityScore": 100
+    },
+    {
+      "title": "Програмування: функції",
+      "requested": 6,
+      "created": 6,
+      "issues": [],
+      "issueCount": 0,
+      "qualityScore": 100
+    }
+  ],
+  "totalQuestions": 25,
+  "totalIssues": 0,
+  "qualityScore": 100.0
+}

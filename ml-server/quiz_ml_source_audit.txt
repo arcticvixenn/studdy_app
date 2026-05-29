@@ -1,0 +1,2324 @@
+﻿
+
+
+==================== .\ml-server\server.py ====================
+
+from src.quiz_routes import router as quiz_router
+import os
+from typing import Any, Dict, List
+
+import numpy as np
+import pandas as pd
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from appwrite.client import Client
+from appwrite.services.databases import Databases
+from appwrite.query import Query
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import joblib
+
+from synthetic_data import generate_synthetic_dataset
+
+load_dotenv()
+
+app = FastAPI(title="Studdy ML Server")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+MODEL_PATH = "hybrid_recommender.pkl"
+
+client = Client()
+client.set_endpoint(os.getenv("APPWRITE_ENDPOINT"))
+client.set_project(os.getenv("APPWRITE_PROJECT_ID"))
+client.set_key(os.getenv("APPWRITE_API_KEY"))
+
+databases = Databases(client)
+
+DATABASE_ID = os.getenv("APPWRITE_DATABASE_ID")
+
+COURSES_ID = os.getenv("APPWRITE_COURSES_COLLECTION_ID", "courses")
+LESSONS_ID = os.getenv("APPWRITE_LESSONS_COLLECTION_ID", "lessons")
+POSTS_ID = os.getenv("APPWRITE_POSTS_COLLECTION_ID", "posts")
+QUIZ_ANSWERS_ID = os.getenv("APPWRITE_QUIZ_ANSWERS_COLLECTION_ID", "quiz_answers")
+QUIZ_ATTEMPTS_ID = os.getenv("APPWRITE_QUIZ_ATTEMPTS_COLLECTION_ID", "quiz_attempts")
+SAVES_ID = os.getenv("APPWRITE_SAVES_COLLECTION_ID", "saves")
+LIKES_ID = os.getenv("APPWRITE_LIKES_COLLECTION_ID", "likes")
+VIEW_EVENTS_ID = os.getenv("APPWRITE_VIEW_EVENTS_COLLECTION_ID", "view_events")
+SEARCH_EVENTS_ID = os.getenv("APPWRITE_SEARCH_EVENTS_COLLECTION_ID", "search_events")
+
+
+FEATURE_COLUMNS = [
+    "similarityToWeakTopics",
+    "similarityToKnownTopics",
+    "similarityToSearchHistory",
+    "userAccuracy",
+    "userAnswersCount",
+    "userAvgDifficulty",
+    "weakTopicsCount",
+    "contentTypeValue",
+    "mediaTypeValue",
+    "popularity",
+    "textLength",
+    "viewCount",
+    "searchMatchScore",
+]
+
+
+def safe_text(value: Any) -> str:
+    return str(value or "").lower().strip()
+
+
+def appwrite_doc_to_dict(document: Any) -> Dict[str, Any]:
+    result = {}
+
+    if isinstance(document, dict):
+        result.update(document)
+
+    if hasattr(document, "model_dump"):
+        try:
+            result.update(document.model_dump(by_alias=True))
+        except TypeError:
+            result.update(document.model_dump())
+
+    if hasattr(document, "dict"):
+        try:
+            result.update(document.dict(by_alias=True))
+        except TypeError:
+            result.update(document.dict())
+
+    if hasattr(document, "__dict__"):
+        result.update(dict(document.__dict__))
+
+    possible_data_sources = [
+        result.get("data"),
+        getattr(document, "data", None),
+        result.get("_data"),
+        getattr(document, "_data", None),
+    ]
+
+    for source in possible_data_sources:
+        if isinstance(source, dict):
+            result.update(source)
+
+    result.pop("data", None)
+    result.pop("_data", None)
+
+    return result
+
+
+def list_all_documents(collection_id: str, limit: int = 500) -> List[Dict[str, Any]]:
+    try:
+        result = databases.list_documents(
+            DATABASE_ID,
+            collection_id,
+            queries=[Query.limit(limit)],
+        )
+
+        if hasattr(result, "documents"):
+            return [appwrite_doc_to_dict(document) for document in result.documents]
+
+        if isinstance(result, dict):
+            return result.get("documents", [])
+
+        return []
+    except Exception as error:
+        print(f"Cannot load collection {collection_id}: {error}")
+        return []
+
+
+def is_repetitive_text(text: str) -> bool:
+    value = safe_text(text).replace(" ", "")
+
+    if len(value) < 4:
+        return True
+
+    unique_chars = set(value)
+
+    if len(unique_chars) <= 2 and len(value) >= 5:
+        return True
+
+    if len(value) >= 7 and len(unique_chars) <= 3:
+        return True
+
+    vowels = set("Р°РµС”РёС–С—РѕСѓСЋСЏaeiou")
+    vowel_count = sum(1 for char in value if char in vowels)
+
+    if len(value) >= 7 and vowel_count <= 1:
+        return True
+
+    if len(value) >= 8:
+        chunk = value[:2]
+        repeated = chunk * (len(value) // 2)
+
+        if value.startswith(repeated[: len(value) - 1]):
+            return True
+
+    return False
+
+
+def is_bad_title(title: str) -> bool:
+    value = safe_text(title)
+
+    if not value:
+        return True
+
+    cleaned = value.replace(" ", "")
+
+    blocked_test_titles = {
+        "kapec",
+        "aaaaa",
+        "asaaaaaaaa",
+        "fgdfgfdg",
+        "test",
+        "С‚РµСЃС‚",
+    }
+
+    if cleaned in blocked_test_titles:
+        return True
+
+    if is_repetitive_text(cleaned):
+        return True
+
+    words = value.split()
+
+    meaningful_words = [
+        word for word in words
+        if len(word) >= 4
+    ]
+
+    if len(words) <= 1 and len(cleaned) < 10:
+        return True
+
+    if len(meaningful_words) == 0:
+        return True
+
+    return False
+
+
+def has_meaningful_content(item: Dict[str, Any]) -> bool:
+    title = safe_text(item.get("title"))
+    text = safe_text(item.get("text"))
+    content_type = item.get("type")
+
+    combined = f"{title} {text}".strip()
+
+    if not combined:
+        return False
+
+    if content_type == "post":
+        if is_bad_title(title):
+            return False
+
+        if is_repetitive_text(combined):
+            return False
+
+        if len(combined) < 60:
+            return False
+
+        meaningful_words = [
+            word for word in combined.split()
+            if len(word) >= 4
+        ]
+
+        if len(meaningful_words) < 6:
+            return False
+
+    if content_type == "lesson":
+        if is_repetitive_text(title):
+            return False
+
+        if len(combined) < 30:
+            return False
+
+    if content_type == "course":
+        if is_repetitive_text(title):
+            return False
+
+        if len(combined) < 25:
+            return False
+
+    return True
+
+
+def content_to_text(item: Dict[str, Any], content_type: str) -> str:
+    if content_type == "course":
+        return " ".join([
+            safe_text(item.get("title")),
+            safe_text(item.get("description")),
+            safe_text(item.get("category")),
+            safe_text(item.get("level")),
+        ])
+
+    if content_type == "lesson":
+        return " ".join([
+            safe_text(item.get("title")),
+            safe_text(item.get("description")),
+            safe_text(item.get("content")),
+            safe_text(item.get("mediaType")),
+        ])
+
+    return " ".join([
+        safe_text(item.get("title")),
+        safe_text(item.get("content")),
+        safe_text(item.get("category")),
+        safe_text(item.get("mediaType")),
+    ])
+
+
+def compute_text_similarity(content_text: str, topics: List[str]) -> float:
+    if not topics:
+        return 0.0
+
+    topic_text = " ".join([safe_text(topic) for topic in topics])
+
+    if not content_text.strip() or not topic_text.strip():
+        return 0.0
+
+    try:
+        vectorizer = TfidfVectorizer()
+        matrix = vectorizer.fit_transform([content_text, topic_text])
+        return float(cosine_similarity(matrix[0:1], matrix[1:2])[0][0])
+    except ValueError:
+        return 0.0
+
+
+def content_type_value(content_type: str) -> int:
+    if content_type == "course":
+        return 1
+    if content_type == "lesson":
+        return 2
+    if content_type == "post":
+        return 3
+    return 0
+
+
+def media_type_value(item: Dict[str, Any]) -> int:
+    media_type = item.get("mediaType") or item.get("raw", {}).get("mediaType")
+
+    if media_type == "video":
+        return 2
+    if media_type == "image":
+        return 1
+    return 0
+
+
+def build_user_profiles(
+    answers: List[Dict[str, Any]],
+    search_events: List[Dict[str, Any]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    profiles: Dict[str, Dict[str, Any]] = {}
+
+    search_events = search_events or []
+
+    for answer in answers:
+        user_id = answer.get("userId")
+        if not user_id:
+            continue
+
+        topic = answer.get("topic") or "Р‘РµР· С‚РµРјРё"
+        is_correct = bool(answer.get("isCorrect"))
+        difficulty = int(answer.get("difficulty") or 1)
+
+        if user_id not in profiles:
+            profiles[user_id] = {
+                "userId": user_id,
+                "totalAnswers": 0,
+                "correctAnswers": 0,
+                "topicStats": {},
+                "avgDifficulty": 0,
+                "difficultySum": 0,
+                "searchQueries": [],
+            }
+
+        profile = profiles[user_id]
+        profile["totalAnswers"] += 1
+        profile["difficultySum"] += difficulty
+
+        if is_correct:
+            profile["correctAnswers"] += 1
+
+        if topic not in profile["topicStats"]:
+            profile["topicStats"][topic] = {
+                "topic": topic,
+                "total": 0,
+                "correct": 0,
+                "incorrect": 0,
+                "difficultySum": 0,
+            }
+
+        topic_stat = profile["topicStats"][topic]
+        topic_stat["total"] += 1
+        topic_stat["difficultySum"] += difficulty
+
+        if is_correct:
+            topic_stat["correct"] += 1
+        else:
+            topic_stat["incorrect"] += 1
+
+    for event in search_events:
+        user_id = event.get("userId")
+        query = event.get("query")
+
+        if not user_id or not query:
+            continue
+
+        if user_id not in profiles:
+            profiles[user_id] = {
+                "userId": user_id,
+                "totalAnswers": 0,
+                "correctAnswers": 0,
+                "topicStats": {},
+                "avgDifficulty": 1,
+                "difficultySum": 0,
+                "searchQueries": [],
+            }
+
+        profiles[user_id]["searchQueries"].append(query)
+
+    for profile in profiles.values():
+        total = profile["totalAnswers"]
+        profile["accuracy"] = profile["correctAnswers"] / total if total else 0
+        profile["avgDifficulty"] = profile["difficultySum"] / total if total else 1
+
+        weak_topics = []
+
+        for topic_stat in profile["topicStats"].values():
+            total_topic = topic_stat["total"]
+            accuracy = topic_stat["correct"] / total_topic if total_topic else 0
+            avg_difficulty = topic_stat["difficultySum"] / total_topic if total_topic else 1
+
+            topic_stat["accuracy"] = accuracy
+            topic_stat["avgDifficulty"] = avg_difficulty
+
+            if accuracy < 0.75 or topic_stat["incorrect"] > 0:
+                weak_topics.append(topic_stat["topic"])
+
+        profile["weakTopics"] = weak_topics
+
+    return profiles
+
+
+def build_content_items(
+    courses: List[Dict[str, Any]],
+    lessons: List[Dict[str, Any]],
+    posts: List[Dict[str, Any]],
+    view_events: List[Dict[str, Any]] = None,
+) -> List[Dict[str, Any]]:
+    view_events = view_events or []
+    view_counts: Dict[str, int] = {}
+
+    for event in view_events:
+        content_id = event.get("contentId")
+        if content_id:
+            view_counts[content_id] = view_counts.get(content_id, 0) + 1
+
+    items = []
+
+    for course in courses:
+        course_id = course.get("$id")
+
+        items.append({
+            "id": course_id,
+            "type": "course",
+            "title": course.get("title"),
+            "text": content_to_text(course, "course"),
+            "viewCount": view_counts.get(course_id, 0),
+            "raw": course,
+        })
+
+    for lesson in lessons:
+        lesson_id = lesson.get("$id")
+
+        items.append({
+            "id": lesson_id,
+            "type": "lesson",
+            "title": lesson.get("title"),
+            "text": content_to_text(lesson, "lesson"),
+            "courseId": lesson.get("courseId"),
+            "viewCount": view_counts.get(lesson_id, 0),
+            "raw": lesson,
+        })
+
+    for post in posts:
+        post_id = post.get("$id")
+
+        items.append({
+            "id": post_id,
+            "type": "post",
+            "title": post.get("title"),
+            "text": content_to_text(post, "post"),
+            "mediaType": post.get("mediaType"),
+            "likesCount": int(post.get("likesCount") or 0),
+            "commentsCount": int(post.get("commentsCount") or 0),
+            "viewCount": view_counts.get(post_id, 0),
+            "raw": post,
+        })
+
+    return [
+        item
+        for item in items
+        if item.get("id") and has_meaningful_content(item)
+    ]
+
+
+def build_dataset(
+    profiles: Dict[str, Dict[str, Any]],
+    content_items: List[Dict[str, Any]],
+) -> pd.DataFrame:
+    raw_rows = []
+
+    for user_id, profile in profiles.items():
+        weak_topics = profile.get("weakTopics", [])
+        all_topics = list(profile.get("topicStats", {}).keys())
+        search_queries = profile.get("searchQueries", [])
+
+        if not all_topics and not search_queries:
+            continue
+
+        user_rows = []
+
+        for item in content_items:
+            similarity_to_weak = compute_text_similarity(item["text"], weak_topics)
+            similarity_to_all = compute_text_similarity(item["text"], all_topics)
+            similarity_to_search = compute_text_similarity(item["text"], search_queries)
+
+            popularity = (
+                int(item.get("likesCount") or 0)
+                + int(item.get("commentsCount") or 0)
+            )
+
+            text_length = len(item.get("text", ""))
+            view_count = int(item.get("viewCount") or 0)
+
+            raw_score = (
+                similarity_to_weak * 1.8
+                + similarity_to_all * 1.0
+                + similarity_to_search * 1.2
+                + min(popularity / 20, 1) * 0.15
+                + min(view_count / 20, 1) * 0.12
+                + min(text_length / 3000, 1) * 0.1
+            )
+
+            user_rows.append({
+                "userId": user_id,
+                "contentId": item["id"],
+                "contentType": item["type"],
+                "similarityToWeakTopics": similarity_to_weak,
+                "similarityToKnownTopics": similarity_to_all,
+                "similarityToSearchHistory": similarity_to_search,
+                "userAccuracy": profile.get("accuracy", 0),
+                "userAnswersCount": profile.get("totalAnswers", 0),
+                "userAvgDifficulty": profile.get("avgDifficulty", 1),
+                "weakTopicsCount": len(weak_topics),
+                "contentTypeValue": content_type_value(item["type"]),
+                "mediaTypeValue": media_type_value(item),
+                "popularity": popularity,
+                "textLength": min(text_length, 5000),
+                "viewCount": view_count,
+                "searchMatchScore": similarity_to_search,
+                "rawScore": raw_score,
+            })
+
+        if not user_rows:
+            continue
+
+        scores = [row["rawScore"] for row in user_rows]
+
+        if max(scores) == min(scores):
+            sorted_rows = sorted(
+                user_rows,
+                key=lambda row: (
+                    row["similarityToWeakTopics"],
+                    row["similarityToKnownTopics"],
+                    row["similarityToSearchHistory"],
+                    row["popularity"],
+                    row["viewCount"],
+                    row["textLength"],
+                ),
+                reverse=True,
+            )
+
+            split_index = max(1, len(sorted_rows) // 2)
+
+            for index, row in enumerate(sorted_rows):
+                row["label"] = 1 if index < split_index else 0
+                raw_rows.append(row)
+        else:
+            threshold = float(np.percentile(scores, 65))
+
+            for row in user_rows:
+                row["label"] = 1 if row["rawScore"] >= threshold else 0
+                raw_rows.append(row)
+
+    dataset = pd.DataFrame(raw_rows)
+
+    if dataset.empty:
+        return dataset
+
+    if dataset["label"].nunique() < 2 and len(dataset) >= 4:
+        dataset = dataset.sort_values("rawScore", ascending=False).reset_index(drop=True)
+        split_index = max(1, len(dataset) // 2)
+
+        dataset["label"] = 0
+        dataset.loc[:split_index - 1, "label"] = 1
+
+    return dataset
+
+
+@app.get("/health")
+def health():
+    return {
+        "ok": True,
+        "service": "studdy-ml-server",
+    }
+
+
+@app.post("/train")
+def train_model():
+    answers = list_all_documents(QUIZ_ANSWERS_ID, limit=1000)
+    courses = list_all_documents(COURSES_ID, limit=500)
+    lessons = list_all_documents(LESSONS_ID, limit=500)
+    posts = list_all_documents(POSTS_ID, limit=500)
+    view_events = list_all_documents(VIEW_EVENTS_ID, limit=1000)
+    search_events = list_all_documents(SEARCH_EVENTS_ID, limit=1000)
+
+    profiles = build_user_profiles(answers, search_events)
+    content_items = build_content_items(courses, lessons, posts, view_events)
+
+    dataset = build_dataset(profiles, content_items)
+
+    real_samples = len(dataset)
+    synthetic_used = False
+    synthetic_samples = 0
+
+    if dataset.empty or len(dataset) < 300 or dataset["label"].nunique() < 2:
+        synthetic_dataset = generate_synthetic_dataset(samples=3000)
+
+        for column in FEATURE_COLUMNS:
+            if column not in synthetic_dataset.columns:
+                synthetic_dataset[column] = 0
+
+        if dataset.empty:
+            dataset = synthetic_dataset
+        else:
+            dataset = pd.concat([dataset, synthetic_dataset], ignore_index=True)
+
+        synthetic_used = True
+        synthetic_samples = len(synthetic_dataset)
+
+    if dataset.empty or dataset["label"].nunique() < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="РќРµРґРѕСЃС‚Р°С‚РЅСЊРѕ СЂС–Р·РЅРѕРјР°РЅС–С‚РЅРёС… РґР°РЅРёС… РґР»СЏ РЅР°РІС‡Р°РЅРЅСЏ ML-РјРѕРґРµР»С–.",
+        )
+
+    for column in FEATURE_COLUMNS:
+        if column not in dataset.columns:
+            dataset[column] = 0
+
+    X = dataset[FEATURE_COLUMNS]
+    y = dataset["label"]
+
+    test_size = 0.25 if len(dataset) >= 20 else 0.4
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        random_state=42,
+        stratify=y if y.nunique() > 1 and y.value_counts().min() >= 2 else None,
+    )
+
+    model = RandomForestClassifier(
+        n_estimators=250,
+        max_depth=10,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        random_state=42,
+        class_weight="balanced",
+    )
+
+    model.fit(X_train, y_train)
+
+    predictions = model.predict(X_test)
+
+    metrics = {
+        "accuracy": round(float(accuracy_score(y_test, predictions)), 3),
+        "precision": round(float(precision_score(y_test, predictions, zero_division=0)), 3),
+        "recall": round(float(recall_score(y_test, predictions, zero_division=0)), 3),
+        "f1": round(float(f1_score(y_test, predictions, zero_division=0)), 3),
+    }
+
+    importances = [
+        {
+            "feature": feature,
+            "importance": round(float(value), 4),
+        }
+        for feature, value in zip(FEATURE_COLUMNS, model.feature_importances_)
+    ]
+
+    importances = sorted(importances, key=lambda item: item["importance"], reverse=True)
+
+    joblib.dump(
+        {
+            "model": model,
+            "features": FEATURE_COLUMNS,
+            "metrics": metrics,
+            "featureImportances": importances,
+            "samples": len(dataset),
+            "realSamples": real_samples,
+            "syntheticUsed": synthetic_used,
+            "syntheticSamples": synthetic_samples,
+        },
+        MODEL_PATH,
+    )
+
+    return {
+        "trained": True,
+        "modelType": "RandomForestClassifier",
+        "samples": len(dataset),
+        "realSamples": real_samples,
+        "syntheticUsed": synthetic_used,
+        "syntheticSamples": synthetic_samples,
+        "users": len(profiles),
+        "contentItems": len(content_items),
+        "viewEvents": len(view_events),
+        "searchEvents": len(search_events),
+        "metrics": metrics,
+        "featureImportances": importances,
+    }
+
+
+@app.get("/recommend/{user_id}")
+def recommend_for_user(user_id: str):
+    if not os.path.exists(MODEL_PATH):
+        train_model()
+
+    bundle = joblib.load(MODEL_PATH)
+    model = bundle["model"]
+
+    answers = list_all_documents(QUIZ_ANSWERS_ID, limit=1000)
+    courses = list_all_documents(COURSES_ID, limit=500)
+    lessons = list_all_documents(LESSONS_ID, limit=500)
+    posts = list_all_documents(POSTS_ID, limit=500)
+    view_events = list_all_documents(VIEW_EVENTS_ID, limit=1000)
+    search_events = list_all_documents(SEARCH_EVENTS_ID, limit=1000)
+
+    profiles = build_user_profiles(answers, search_events)
+
+    if user_id not in profiles:
+        return {
+            "trained": False,
+            "message": "Р”Р»СЏ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° С‰Рµ РЅРµРґРѕСЃС‚Р°С‚РЅСЊРѕ РЅР°РІС‡Р°Р»СЊРЅРёС… РґР°РЅРёС….",
+            "recommendations": [],
+        }
+
+    content_items = build_content_items(courses, lessons, posts, view_events)
+    dataset = build_dataset({user_id: profiles[user_id]}, content_items)
+
+    if dataset.empty:
+        return {
+            "trained": False,
+            "message": "РќРµРјР°С” РєРѕРЅС‚РµРЅС‚Сѓ РґР»СЏ СЂРµРєРѕРјРµРЅРґР°С†С–Р№.",
+            "recommendations": [],
+        }
+
+    for column in FEATURE_COLUMNS:
+        if column not in dataset.columns:
+            dataset[column] = 0
+
+    probabilities = model.predict_proba(dataset[FEATURE_COLUMNS])[:, 1]
+    dataset = dataset.copy()
+    dataset["score"] = probabilities
+
+    recommendations = []
+
+    for _, row in dataset.sort_values("score", ascending=False).head(20).iterrows():
+        item = next(
+            (content for content in content_items if content["id"] == row["contentId"]),
+            None,
+        )
+
+        if not item:
+            continue
+
+        if not has_meaningful_content(item):
+            continue
+
+        recommendations.append({
+            "id": item["id"],
+            "type": item["type"],
+            "title": item.get("title") or "РќР°РІС‡Р°Р»СЊРЅРёР№ РјР°С‚РµСЂС–Р°Р»",
+            "score": round(float(row["score"]) * 100, 1),
+            "courseId": item.get("courseId"),
+            "mediaType": item.get("mediaType"),
+            "reason": (
+                "РњРѕРґРµР»СЊ РїС–РґС–Р±СЂР°Р»Р° С†РµР№ РјР°С‚РµСЂС–Р°Р» РЅР° РѕСЃРЅРѕРІС– СЃР»Р°Р±РєРёС… С‚РµРј, "
+                "РїРѕС€СѓРєРѕРІРѕС— Р°РєС‚РёРІРЅРѕСЃС‚С–, РїРµСЂРµРіР»СЏРґС–РІ, РїСЂРѕС„С–Р»СЋ Р·РЅР°РЅСЊ С‚Р° СЃС…РѕР¶РѕСЃС‚С– РєРѕРЅС‚РµРЅС‚Сѓ."
+            ),
+        })
+
+        if len(recommendations) >= 10:
+            break
+
+    return {
+        "trained": True,
+        "modelType": "RandomForestClassifier",
+        "metrics": bundle.get("metrics"),
+        "featureImportances": bundle.get("featureImportances"),
+        "samples": bundle.get("samples"),
+        "realSamples": bundle.get("realSamples"),
+        "syntheticUsed": bundle.get("syntheticUsed"),
+        "syntheticSamples": bundle.get("syntheticSamples"),
+        "recommendations": recommendations,
+    }
+
+
+@app.get("/debug-data")
+def debug_data():
+    answers = list_all_documents(QUIZ_ANSWERS_ID, limit=1000)
+    courses = list_all_documents(COURSES_ID, limit=500)
+    lessons = list_all_documents(LESSONS_ID, limit=500)
+    posts = list_all_documents(POSTS_ID, limit=500)
+    view_events = list_all_documents(VIEW_EVENTS_ID, limit=1000)
+    search_events = list_all_documents(SEARCH_EVENTS_ID, limit=1000)
+
+    profiles = build_user_profiles(answers, search_events)
+    content_items = build_content_items(courses, lessons, posts, view_events)
+    dataset = build_dataset(profiles, content_items)
+
+    label_counts = {}
+
+    if not dataset.empty and "label" in dataset.columns:
+        label_counts = dataset["label"].value_counts().to_dict()
+
+    return {
+        "answers": len(answers),
+        "courses": len(courses),
+        "lessons": len(lessons),
+        "posts": len(posts),
+        "viewEvents": len(view_events),
+        "searchEvents": len(search_events),
+        "usersWithProfiles": len(profiles),
+        "contentItems": len(content_items),
+        "datasetRows": len(dataset),
+        "labelCounts": label_counts,
+    }
+
+
+@app.get("/debug-collections")
+def debug_collections():
+    collections = {
+        "courses": COURSES_ID,
+        "lessons": LESSONS_ID,
+        "posts": POSTS_ID,
+        "quiz_answers": QUIZ_ANSWERS_ID,
+        "quiz_attempts": QUIZ_ATTEMPTS_ID,
+        "saves": SAVES_ID,
+        "likes": LIKES_ID,
+        "view_events": VIEW_EVENTS_ID,
+        "search_events": SEARCH_EVENTS_ID,
+    }
+
+    result = {}
+
+    for name, collection_id in collections.items():
+        try:
+            response = databases.list_documents(
+                DATABASE_ID,
+                collection_id,
+                queries=[Query.limit(1)],
+            )
+
+            documents = response.documents if hasattr(response, "documents") else []
+
+            result[name] = {
+                "collectionId": collection_id,
+                "ok": True,
+                "count": len(documents),
+            }
+        except Exception as error:
+            result[name] = {
+                "collectionId": collection_id,
+                "ok": False,
+                "error": str(error),
+            }
+
+    return {
+        "databaseId": DATABASE_ID,
+        "projectId": os.getenv("APPWRITE_PROJECT_ID"),
+        "collections": result,
+    }
+
+
+@app.get("/debug-answer-sample")
+def debug_answer_sample():
+    answers = list_all_documents(QUIZ_ANSWERS_ID, limit=3)
+
+    return {
+        "count": len(answers),
+        "samples": answers,
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "server:app",
+        host="127.0.0.1",
+        port=6060,
+        reload=True
+    )
+
+
+app.include_router(quiz_router)
+
+
+
+
+==================== .\ml-server\src\quiz_routes.py ====================
+
+from typing import Optional
+
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
+
+from src.quiz_pipeline import QuizPipeline
+
+
+router = APIRouter(prefix="/quiz", tags=["ML Quiz Generation"])
+
+pipeline = QuizPipeline()
+
+
+class QuizGenerateRequest(BaseModel):
+    title: str = Field(..., min_length=2, description="Назва теми або уроку")
+    text: str = Field(..., min_length=80, description="Навчальний текст для аналізу")
+    questionCount: Optional[int] = Field(default=5, ge=1, le=15)
+
+
+@router.get("/health")
+def quiz_health():
+    return {
+        "ok": True,
+        "module": "local_ml_quiz_generator",
+        "description": "Local ML/NLP quiz generation module based on educational text"
+    }
+
+
+@router.post("/generate")
+def generate_quiz(request: QuizGenerateRequest):
+    quiz = pipeline.generate_quiz(
+        title=request.title,
+        text=request.text,
+        question_count=request.questionCount or 5
+    )
+
+    return quiz
+
+
+
+==================== .\ml-server\src\quiz_pipeline.py ====================
+
+from typing import Dict
+
+from src.text_preprocessor import split_sentences
+from src.keyword_extractor import KeywordExtractor
+from src.topic_model import TopicModel
+from src.difficulty_model import DifficultyModel
+from src.question_generator import QuestionGenerator
+
+
+class QuizPipeline:
+    def __init__(self):
+        self.keyword_extractor = KeywordExtractor(max_keywords=20)
+        self.topic_model = TopicModel(max_topics=3)
+        self.difficulty_model = DifficultyModel()
+        self.question_generator = QuestionGenerator()
+
+    def generate_quiz(self, title: str, text: str, question_count: int = 5) -> Dict:
+        sentences = split_sentences(text)
+
+        if len(sentences) < 2:
+            return {
+                "title": f"Тест: {title}",
+                "source": "local_ml_pipeline",
+                "error": "Недостатньо навчального тексту для генерації тесту.",
+                "questions": [],
+                "keywords": [],
+                "topics": []
+            }
+
+        self.difficulty_model.train(sentences)
+
+        keyword_items = self.keyword_extractor.extract_keywords(text)
+        keywords = [item["keyword"] for item in keyword_items]
+
+        topics = self.topic_model.detect_topics(text)
+
+        main_topic = title if title else "Навчальний матеріал"
+
+        questions = self.question_generator.generate_questions(
+            text=text,
+            keywords=keywords,
+            difficulty_model=self.difficulty_model,
+            topic=main_topic,
+            count=question_count
+        )
+
+        return {
+            "title": f"Тест: {title}",
+            "source": "local_ml_pipeline",
+            "modelDescription": {
+                "textAnalysis": "TF-IDF keyword extraction",
+                "topicDetection": "KMeans clustering over TF-IDF sentence vectors",
+                "difficultyPrediction": "RandomForestClassifier over sentence features",
+                "questionGeneration": "ML-assisted extractive question generation"
+            },
+            "statistics": {
+                "sentenceCount": len(sentences),
+                "keywordCount": len(keywords),
+                "topicCount": len(topics),
+                "questionCount": len(questions)
+            },
+            "keywords": keyword_items,
+            "topics": topics,
+            "questions": questions,
+            "error": None
+        }
+
+
+
+==================== .\ml-server\src\question_generator.py ====================
+
+from typing import List, Dict, Optional
+import random
+import re
+
+from src.text_preprocessor import split_sentences, tokenize
+from src.answer_candidate_model import AnswerCandidateModel
+from src.distractor_generator import DistractorGenerator
+
+
+BAD_ANSWERS = {
+    "даних", "дані", "основі", "дозволяє", "оцінюється", "використовується",
+    "застосовується", "мають", "можуть", "прикладу", "наприклад",
+    "значень", "рейтингу", "температури", "ціни", "готових", "правильних",
+    "відповідей", "визначає", "складається", "може", "знаходити",
+    "таких", "таких як", "коли", "відома", "правильна", "які",
+    "використовуються", "формує", "приймає", "виконують"
+}
+
+
+BAD_PHRASE_PARTS = [
+    "які використовуються",
+    "наприклад клас",
+    "наприклад",
+    "на основі",
+    "у якій",
+    "який дозволяє",
+]
+
+
+DOMAIN_TERMS = [
+    "середня абсолютна помилка",
+    "навчання з учителем",
+    "навчання без учителя",
+    "машинне навчання",
+    "штучний інтелект",
+    "нейронна мережа",
+    "вхідний шар",
+    "вихідний шар",
+    "приховані шари",
+    "функція втрат",
+    "градієнтний спуск",
+    "перенавчання",
+    "метрики якості",
+    "якість моделі",
+    "класифікація",
+    "кластеризація",
+    "регресія",
+    "точність",
+    "повнота",
+    "f1-міра",
+    "алгоритм",
+    "датасет",
+    "модель",
+    "ознака",
+]
+
+
+class QuestionGenerator:
+    def __init__(self):
+        random.seed(42)
+        self.answer_model = AnswerCandidateModel()
+        self.answer_model.load()
+        self.distractor_generator = DistractorGenerator()
+
+    def clean_text(self, value: str) -> str:
+        value = str(value).strip()
+        value = re.sub(r"\s+", " ", value)
+        value = value.strip(" ,.;:—-")
+        return value
+
+    def has_bad_phrase(self, value: str) -> bool:
+        lower = value.lower()
+        return any(part in lower for part in BAD_PHRASE_PARTS)
+
+    def sentence_has_term(self, sentence: str, term: str) -> bool:
+        return term.lower() in sentence.lower()
+
+    def get_best_domain_term(self, sentence: str) -> Optional[str]:
+        for term in sorted(DOMAIN_TERMS, key=len, reverse=True):
+            if self.sentence_has_term(sentence, term):
+                return term
+        return None
+
+    def is_good_short_answer(self, answer: str) -> bool:
+        answer = self.clean_text(answer)
+        lower = answer.lower()
+
+        if len(answer) < 4:
+            return False
+
+        if lower in BAD_ANSWERS:
+            return False
+
+        if self.has_bad_phrase(answer):
+            return False
+
+        words = lower.split()
+
+        if len(words) > 4:
+            return False
+
+        if words[0] in BAD_ANSWERS or words[-1] in BAD_ANSWERS:
+            return False
+
+        return True
+
+    def is_good_long_answer(self, answer: str) -> bool:
+        answer = self.clean_text(answer)
+        lower = answer.lower()
+
+        if len(answer) < 6:
+            return False
+
+        if self.has_bad_phrase(answer):
+            return False
+
+        words = lower.split()
+
+        if len(words) > 16:
+            return False
+
+        if words[0] in BAD_ANSWERS or words[-1] in BAD_ANSWERS:
+            return False
+
+        return True
+
+    def make_options(
+        self,
+        correct_answer: str,
+        answer_type: str,
+        source_sentence: str,
+        term: str = ""
+    ):
+        if answer_type == "long":
+            distractors = self.distractor_generator.generate_purpose_distractors(
+                correct_answer=correct_answer,
+                source_sentence=source_sentence,
+                term=term,
+            )
+        else:
+            distractors = self.distractor_generator.generate_term_distractors(
+                correct_answer=correct_answer,
+                topic=term,
+            )
+
+        options = [correct_answer] + distractors
+        random.shuffle(options)
+
+        correct_index = options.index(correct_answer)
+        correct_option = ["A", "B", "C", "D"][correct_index]
+
+        return options, correct_option
+
+    def try_neural_layer_patterns(self, sentence: str) -> Optional[Dict]:
+        s = self.clean_text(sentence)
+
+        match = re.match(r"^Вхідний\s+шар\s+приймає\s+(.+?)(,\s+які\s+.+)?\.?$", s, flags=re.IGNORECASE)
+        if match:
+            answer = self.clean_text(match.group(1))
+            return {
+                "questionText": "Що приймає вхідний шар нейронної мережі?",
+                "answer": answer,
+                "answerType": "long",
+                "term": "вхідний шар",
+            }
+
+        match = re.match(r"^Вихідний\s+шар\s+формує\s+(.+?)(,\s+наприклад\s+.+)?\.?$", s, flags=re.IGNORECASE)
+        if match:
+            answer = self.clean_text(match.group(1))
+            return {
+                "questionText": "Що формує вихідний шар нейронної мережі?",
+                "answer": answer,
+                "answerType": "long",
+                "term": "вихідний шар",
+            }
+
+        match = re.match(r"^Приховані\s+шари\s+виконують\s+(.+?)\s+і\s+дозволяють\s+моделі\s+знаходити\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            first_part = self.clean_text(match.group(1))
+            second_part = self.clean_text(match.group(2))
+
+            if second_part.lower() == "складні закономірності":
+                second_part = "складних закономірностей"
+
+            answer = self.clean_text(first_part + " і пошук " + second_part)
+
+            return {
+                "questionText": "Яку роль виконують приховані шари нейронної мережі?",
+                "answer": answer,
+                "answerType": "long",
+                "term": "приховані шари",
+            }
+
+        return None
+
+    def try_pattern_question(self, sentence: str) -> Optional[Dict]:
+        neural_result = self.try_neural_layer_patterns(sentence)
+        if neural_result:
+            return neural_result
+
+        s = self.clean_text(sentence)
+
+        match = re.match(r"^(.+?)\s+використовується\s+для\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            term = self.clean_text(match.group(1))
+            answer = self.clean_text("для " + match.group(2))
+
+            if self.is_good_short_answer(term) and self.is_good_long_answer(answer):
+                return {
+                    "questionText": f"Для чого використовується поняття «{term}»?",
+                    "answer": answer,
+                    "answerType": "long",
+                    "term": term,
+                }
+
+        match = re.match(r"^(.+?)\s+застосовується\s+тоді,\s+коли\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            term = self.clean_text(match.group(1))
+            answer = self.clean_text("коли " + match.group(2))
+
+            if self.is_good_short_answer(term) and self.is_good_long_answer(answer):
+                return {
+                    "questionText": f"Коли застосовується поняття «{term}»?",
+                    "answer": answer,
+                    "answerType": "long",
+                    "term": term,
+                }
+
+        match = re.match(r"^(.+?)\s+дозволяє\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            term = self.clean_text(match.group(1))
+            answer = self.clean_text(match.group(2))
+
+            if self.is_good_short_answer(term) and self.is_good_long_answer(answer):
+                return {
+                    "questionText": f"Що дозволяє виконувати поняття «{term}»?",
+                    "answer": answer,
+                    "answerType": "long",
+                    "term": term,
+                }
+
+        match = re.match(r"^(.+?)\s+складається\s+з\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            term = self.clean_text(match.group(1))
+            answer = self.clean_text("з " + match.group(2))
+
+            if self.is_good_short_answer(term) and self.is_good_long_answer(answer):
+                return {
+                    "questionText": f"З чого складається поняття «{term}»?",
+                    "answer": answer,
+                    "answerType": "long",
+                    "term": term,
+                }
+
+        match = re.match(
+            r"^Якість\s+(.+?)\s+оцінюється\s+за\s+допомогою\s+метрик,\s+таких\s+як\s+(.+?)\.?$",
+            s,
+            flags=re.IGNORECASE
+        )
+        if match:
+            answer = self.clean_text(match.group(2))
+
+            if self.is_good_long_answer(answer):
+                return {
+                    "questionText": "Які метрики можуть використовуватися для оцінювання якості моделі?",
+                    "answer": answer,
+                    "answerType": "long",
+                    "term": "метрики якості",
+                }
+
+        match = re.match(r"^(.+?)\s+є\s+задачею\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            term = self.clean_text(match.group(1))
+
+            if self.is_good_short_answer(term):
+                return {
+                    "questionText": "Яке поняття є задачею машинного навчання, описаною в твердженні?",
+                    "answer": term,
+                    "answerType": "term",
+                    "term": term,
+                }
+
+        match = re.match(r"^(.+?)\s+—\s+це\s+(.+?)\.?$", s, flags=re.IGNORECASE)
+        if match:
+            term = self.clean_text(match.group(1))
+            answer = self.clean_text(match.group(2))
+
+            if self.is_good_short_answer(term) and self.is_good_long_answer(answer):
+                return {
+                    "questionText": f"Що таке «{term}»?",
+                    "answer": answer,
+                    "answerType": "long",
+                    "term": term,
+                }
+
+        return None
+
+    def find_answer_in_sentence(
+        self,
+        sentence: str,
+        keywords: List[str],
+        context: str = ""
+    ) -> Optional[str]:
+        domain_term = self.get_best_domain_term(sentence)
+
+        if domain_term and self.is_good_short_answer(domain_term):
+            return domain_term
+
+        ranked = self.answer_model.rank_candidates(
+            sentence=sentence,
+            context=context or sentence,
+            limit=20
+        )
+
+        for item in ranked:
+            candidate = self.clean_text(item["candidate"])
+
+            if self.is_good_short_answer(candidate):
+                return candidate
+
+        for keyword in sorted(keywords, key=len, reverse=True):
+            keyword = self.clean_text(keyword)
+
+            if keyword.lower() in sentence.lower() and self.is_good_short_answer(keyword):
+                return keyword
+
+        tokens = tokenize(sentence)
+        candidates = [token for token in tokens if self.is_good_short_answer(token)]
+
+        if not candidates:
+            return None
+
+        return max(candidates, key=len)
+
+    def make_cloze_question(self, sentence: str, answer: str) -> str:
+        pattern = re.compile(re.escape(answer), re.IGNORECASE)
+        masked = pattern.sub("__________", sentence, count=1)
+
+        if masked != sentence:
+            return f"Яке поняття пропущено в твердженні: «{masked}»?"
+
+        return f"Яке поняття найкраще відповідає твердженню: «{sentence}»?"
+
+    def build_question(
+        self,
+        question_text: str,
+        answer: str,
+        topic: str,
+        difficulty: int,
+        order: int,
+        source_sentence: str,
+        answer_type: str = "term",
+        term: str = ""
+    ) -> Dict:
+        options, correct_option = self.make_options(
+            correct_answer=answer,
+            answer_type=answer_type,
+            source_sentence=source_sentence,
+            term=term,
+        )
+
+        return {
+            "questionText": question_text,
+            "optionA": options[0],
+            "optionB": options[1],
+            "optionC": options[2],
+            "optionD": options[3],
+            "correctOption": correct_option,
+            "explanation": f"Правильна відповідь: «{answer}», оскільки це випливає з навчального матеріалу.",
+            "topic": topic,
+            "difficulty": difficulty,
+            "questionOrder": order,
+            "sourceSentence": source_sentence
+        }
+
+    def generate_questions(
+        self,
+        text: str,
+        keywords: List[str],
+        difficulty_model,
+        topic: str,
+        count: int = 5
+    ) -> List[Dict]:
+        sentences = split_sentences(text)
+
+        if not sentences:
+            return []
+
+        questions = []
+        used_answers = set()
+        used_sentences = set()
+
+        keyword_set = set([k.lower() for k in keywords])
+
+        ranked_sentences = sorted(
+            sentences,
+            key=lambda s: (
+                len(set(tokenize(s)) & keyword_set),
+                len(s)
+            ),
+            reverse=True
+        )
+
+        for sentence in ranked_sentences:
+            if len(questions) >= count:
+                break
+
+            if sentence in used_sentences:
+                continue
+
+            pattern_result = self.try_pattern_question(sentence)
+
+            if not pattern_result:
+                continue
+
+            answer = self.clean_text(pattern_result["answer"])
+
+            if not self.is_good_long_answer(answer) and pattern_result["answerType"] == "long":
+                continue
+
+            if answer.lower() in used_answers:
+                continue
+
+            used_answers.add(answer.lower())
+            used_sentences.add(sentence)
+
+            difficulty = difficulty_model.predict(sentence)
+
+            questions.append(
+                self.build_question(
+                    question_text=pattern_result["questionText"],
+                    answer=answer,
+                    topic=topic,
+                    difficulty=difficulty,
+                    order=len(questions) + 1,
+                    source_sentence=sentence,
+                    answer_type=pattern_result["answerType"],
+                    term=pattern_result.get("term", ""),
+                )
+            )
+
+        for sentence in ranked_sentences:
+            if len(questions) >= count:
+                break
+
+            if sentence in used_sentences:
+                continue
+
+            answer = self.find_answer_in_sentence(
+                sentence=sentence,
+                keywords=keywords,
+                context=text
+            )
+
+            if not answer:
+                continue
+
+            answer = self.clean_text(answer)
+
+            if not self.is_good_short_answer(answer):
+                continue
+
+            if answer.lower() in used_answers:
+                continue
+
+            used_answers.add(answer.lower())
+            used_sentences.add(sentence)
+
+            difficulty = difficulty_model.predict(sentence)
+            question_text = self.make_cloze_question(sentence, answer)
+
+            questions.append(
+                self.build_question(
+                    question_text=question_text,
+                    answer=answer,
+                    topic=topic,
+                    difficulty=difficulty,
+                    order=len(questions) + 1,
+                    source_sentence=sentence,
+                    answer_type="term",
+                    term=answer,
+                )
+            )
+
+        return questions
+
+
+
+==================== .\ml-server\src\distractor_generator.py ====================
+
+from typing import List
+import random
+
+
+DOMAIN_TERMS = [
+    "машинне навчання",
+    "навчання з учителем",
+    "навчання без учителя",
+    "класифікація",
+    "регресія",
+    "кластеризація",
+    "нейронна мережа",
+    "модель",
+    "алгоритм",
+    "датасет",
+    "ознака",
+    "метрика якості",
+    "точність",
+    "повнота",
+    "f1-міра",
+    "середня абсолютна помилка",
+    "штучний інтелект",
+]
+
+
+METRIC_DISTRACTORS = [
+    "класифікація, регресія та кластеризація",
+    "тренувальна, тестова та валідаційна вибірки",
+    "середнє значення, медіана та дисперсія",
+    "ознаки, мітки класів та навчальні приклади",
+    "градієнтний спуск, функція втрат та оптимізація",
+]
+
+
+PURPOSE_DISTRACTORS = {
+    "регресія": [
+        "для визначення класу об'єкта на основі його ознак",
+        "для об'єднання схожих об'єктів у групи",
+        "для роботи з даними без готових правильних відповідей",
+        "для оцінювання якості моделі за метриками",
+    ],
+    "кластеризація": [
+        "для прогнозування числових значень",
+        "для визначення класу об'єкта на основі його ознак",
+        "для навчання на розмічених даних",
+        "для оцінювання точності класифікатора",
+    ],
+    "класифікація": [
+        "для прогнозування числових значень",
+        "для об'єднання схожих об'єктів у групи",
+        "для зменшення розмірності даних",
+        "для пошуку пропущених значень у таблиці",
+    ],
+    "навчання з учителем": [
+        "коли дані не мають готових правильних відповідей",
+        "коли потрібно лише об'єднати об'єкти у групи",
+        "коли модель не використовує навчальні приклади",
+        "коли система працює без міток класів",
+    ],
+    "навчання без учителя": [
+        "коли для кожного прикладу відома правильна відповідь",
+        "коли модель навчається тільки на розмічених даних",
+        "коли потрібно передбачити готову мітку класу",
+        "коли кожен об'єкт має наперед заданий клас",
+    ],
+    "нейронна мережа": [
+        "з таблиць, рядків і SQL-запитів",
+        "з кластерів, центрів і відстаней між групами",
+        "з правил, умов і логічних операторів",
+        "з метрик, помилок і звітів оцінювання",
+    ],
+}
+
+
+GENERIC_PURPOSE_DISTRACTORS = [
+    "для прогнозування числових значень",
+    "для визначення класу об'єкта на основі його ознак",
+    "для об'єднання схожих об'єктів у групи",
+    "для навчання на розмічених даних",
+    "для роботи з даними без готових відповідей",
+    "для оцінювання якості моделі",
+    "для пошуку складних закономірностей у даних",
+]
+
+
+class DistractorGenerator:
+    def __init__(self):
+        random.seed(42)
+
+    def normalize(self, value: str) -> str:
+        return str(value).strip().lower()
+
+    def unique_first_three(self, correct_answer: str, candidates: List[str]) -> List[str]:
+        correct_lower = self.normalize(correct_answer)
+        result = []
+
+        for candidate in candidates:
+            candidate = str(candidate).strip()
+
+            if not candidate:
+                continue
+
+            candidate_lower = self.normalize(candidate)
+
+            if candidate_lower == correct_lower:
+                continue
+
+            if candidate_lower in correct_lower or correct_lower in candidate_lower:
+                continue
+
+            if candidate not in result:
+                result.append(candidate)
+
+            if len(result) == 3:
+                break
+
+        while len(result) < 3:
+            for fallback in DOMAIN_TERMS:
+                if self.normalize(fallback) != correct_lower and fallback not in result:
+                    result.append(fallback)
+                    break
+
+        return result[:3]
+
+    def generate_term_distractors(self, correct_answer: str, topic: str = "") -> List[str]:
+        candidates = []
+
+        correct_lower = self.normalize(correct_answer)
+
+        if "навчання" in correct_lower:
+            candidates.extend([
+                "класифікація",
+                "регресія",
+                "кластеризація",
+                "нейронна мережа",
+            ])
+        elif correct_lower in {"класифікація", "регресія", "кластеризація"}:
+            candidates.extend([
+                "класифікація",
+                "регресія",
+                "кластеризація",
+                "нейронна мережа",
+            ])
+        elif "метрик" in correct_lower or "точність" in correct_lower:
+            candidates.extend([
+                "класифікація",
+                "регресія",
+                "кластеризація",
+                "датасет",
+            ])
+        else:
+            candidates.extend(DOMAIN_TERMS)
+
+        random.shuffle(candidates)
+        return self.unique_first_three(correct_answer, candidates)
+
+    def generate_purpose_distractors(
+        self,
+        correct_answer: str,
+        source_sentence: str = "",
+        term: str = ""
+    ) -> List[str]:
+        sentence_lower = self.normalize(source_sentence)
+        term_lower = self.normalize(term)
+
+        candidates = []
+
+        if "метрик" in sentence_lower or "точність" in sentence_lower or "f1" in sentence_lower:
+            candidates.extend(METRIC_DISTRACTORS)
+            return self.unique_first_three(correct_answer, candidates)
+
+        for known_term, known_distractors in PURPOSE_DISTRACTORS.items():
+            if known_term in term_lower or known_term in sentence_lower:
+                candidates.extend(known_distractors)
+                return self.unique_first_three(correct_answer, candidates)
+
+        candidates.extend(GENERIC_PURPOSE_DISTRACTORS)
+        random.shuffle(candidates)
+
+        return self.unique_first_three(correct_answer, candidates)
+
+
+
+==================== .\ml-server\src\answer_candidate_model.py ====================
+
+import re
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+import joblib
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+
+
+MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
+MODEL_PATH = MODEL_DIR / "answer_candidate_model.joblib"
+
+
+STOPWORDS = {
+    "і", "й", "та", "або", "але", "що", "це", "як", "для", "при", "над", "під",
+    "в", "у", "на", "до", "з", "із", "від", "за", "про", "між", "через",
+    "який", "яка", "яке", "які", "коли", "тоді", "де", "кожного",
+    "може", "можуть", "має", "мають", "було", "були", "бути", "без",
+    "використовується", "дозволяє", "оцінюється", "застосовується",
+    "складається", "визначає", "знаходити", "об'єднувати"
+}
+
+
+def normalize(text: str) -> str:
+    text = str(text).lower()
+    text = text.replace("’", "'")
+    text = re.sub(r"[^a-zа-яіїєґ0-9'\-\s]", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def tokenize(text: str) -> List[str]:
+    return re.findall(r"[a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9'\-]+", text)
+
+
+def generate_candidates(text: str, max_ngram: int = 4) -> List[str]:
+    tokens = tokenize(text)
+    candidates = []
+
+    for n in range(1, max_ngram + 1):
+        for i in range(0, len(tokens) - n + 1):
+            phrase_tokens = tokens[i:i + n]
+
+            if not phrase_tokens:
+                continue
+
+            first = normalize(phrase_tokens[0])
+            last = normalize(phrase_tokens[-1])
+
+            if first in STOPWORDS or last in STOPWORDS:
+                continue
+
+            phrase = " ".join(phrase_tokens).strip()
+            phrase_norm = normalize(phrase)
+
+            if len(phrase_norm) < 3:
+                continue
+
+            if phrase_norm in STOPWORDS:
+                continue
+
+            if phrase_norm not in [normalize(x) for x in candidates]:
+                candidates.append(phrase)
+
+    return candidates
+
+
+def answer_match(candidate: str, answer: str) -> int:
+    candidate_norm = normalize(candidate)
+    answer_norm = normalize(answer)
+
+    if not candidate_norm or not answer_norm:
+        return 0
+
+    if candidate_norm == answer_norm:
+        return 1
+
+    if answer_norm in candidate_norm and len(answer_norm) >= 4:
+        return 1
+
+    if candidate_norm in answer_norm and len(candidate_norm) >= 4:
+        return 1
+
+    return 0
+
+
+class AnswerCandidateModel:
+    def __init__(self):
+        self.model = RandomForestClassifier(
+            n_estimators=160,
+            random_state=42,
+            max_depth=10,
+            class_weight="balanced"
+        )
+        self.is_trained = False
+
+    def extract_features(self, candidate: str, sentence: str, context: str) -> List[float]:
+        candidate_norm = normalize(candidate)
+        sentence_norm = normalize(sentence)
+        context_norm = normalize(context)
+
+        words = candidate_norm.split()
+        word_count = len(words)
+        char_count = len(candidate_norm)
+        avg_word_len = np.mean([len(w) for w in words]) if words else 0
+
+        starts_upper = 1 if candidate[:1].isupper() else 0
+        has_digit = 1 if any(ch.isdigit() for ch in candidate) else 0
+        has_hyphen = 1 if "-" in candidate else 0
+
+        stopword_count = len([w for w in words if w in STOPWORDS])
+        stopword_ratio = stopword_count / word_count if word_count else 0
+
+        sentence_pos = sentence_norm.find(candidate_norm)
+        sentence_pos_norm = sentence_pos / max(len(sentence_norm), 1) if sentence_pos >= 0 else 1
+
+        context_freq = context_norm.count(candidate_norm)
+        sentence_freq = sentence_norm.count(candidate_norm)
+
+        return [
+            word_count,
+            char_count,
+            avg_word_len,
+            starts_upper,
+            has_digit,
+            has_hyphen,
+            stopword_ratio,
+            sentence_pos_norm,
+            context_freq,
+            sentence_freq,
+        ]
+
+    def build_training_rows(self, dataset: List[Dict], max_records: int = 2500) -> Tuple[List[List[float]], List[int]]:
+        x = []
+        y = []
+
+        for record in dataset[:max_records]:
+            context = record["context"]
+            answer = record["answer"]
+
+            candidates = generate_candidates(context, max_ngram=4)
+
+            positive_added = False
+
+            for candidate in candidates[:120]:
+                label = answer_match(candidate, answer)
+
+                if label == 1:
+                    positive_added = True
+
+                x.append(self.extract_features(candidate, context, context))
+                y.append(label)
+
+            if not positive_added:
+                x.append(self.extract_features(answer, context, context))
+                y.append(1)
+
+        return x, y
+
+    def train(self, dataset: List[Dict], max_records: int = 2500) -> Dict:
+        x, y = self.build_training_rows(dataset, max_records=max_records)
+
+        if not x or len(set(y)) < 2:
+            raise ValueError("Not enough training data for answer candidate model.")
+
+        x_train, x_test, y_train, y_test = train_test_split(
+            x,
+            y,
+            test_size=0.2,
+            random_state=42,
+            stratify=y
+        )
+
+        self.model.fit(x_train, y_train)
+        self.is_trained = True
+
+        y_pred = self.model.predict(x_test)
+
+        report = classification_report(
+            y_test,
+            y_pred,
+            output_dict=True,
+            zero_division=0
+        )
+
+        return {
+            "trainRows": len(x_train),
+            "testRows": len(x_test),
+            "positiveLabels": int(sum(y)),
+            "negativeLabels": int(len(y) - sum(y)),
+            "accuracy": round(float(report["accuracy"]), 4),
+            "positivePrecision": round(float(report.get("1", {}).get("precision", 0)), 4),
+            "positiveRecall": round(float(report.get("1", {}).get("recall", 0)), 4),
+        }
+
+    def save(self, path: Path = MODEL_PATH) -> None:
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+        joblib.dump({
+            "model": self.model,
+            "is_trained": self.is_trained,
+        }, path)
+
+    def load(self, path: Path = MODEL_PATH) -> bool:
+        if not path.exists():
+            return False
+
+        payload = joblib.load(path)
+        self.model = payload["model"]
+        self.is_trained = payload["is_trained"]
+        return True
+
+    def rank_candidates(self, sentence: str, context: str, limit: int = 10) -> List[Dict]:
+        candidates = generate_candidates(sentence, max_ngram=4)
+
+        if not candidates:
+            return []
+
+        rows = [
+            self.extract_features(candidate, sentence, context)
+            for candidate in candidates
+        ]
+
+        if self.is_trained and hasattr(self.model, "predict_proba"):
+            probabilities = self.model.predict_proba(rows)
+
+            if probabilities.shape[1] > 1:
+                scores = probabilities[:, 1]
+            else:
+                scores = probabilities[:, 0]
+        else:
+            scores = np.array([0.5] * len(candidates))
+
+        ranked = sorted(
+            zip(candidates, scores),
+            key=lambda item: item[1],
+            reverse=True
+        )
+
+        return [
+            {
+                "candidate": candidate,
+                "score": round(float(score), 4)
+            }
+            for candidate, score in ranked[:limit]
+        ]
+
+
+
+==================== .\ml-server\src\keyword_extractor.py ====================
+
+from typing import List, Dict
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from src.text_preprocessor import normalize_for_ml, split_sentences
+
+
+BAD_KEYWORDS = {
+    "без", "дані", "даних", "основі", "дозволяє", "використовується",
+    "застосовується", "оцінюється", "значень", "ціни", "температури",
+    "рейтингу", "прикладу", "відома", "правильна", "відповідь",
+    "може", "мають", "готових", "визначає", "складається"
+}
+
+
+DOMAIN_TERMS = [
+    "машинне навчання",
+    "навчання з учителем",
+    "навчання без учителя",
+    "класифікація",
+    "регресія",
+    "кластеризація",
+    "нейронна мережа",
+    "модель",
+    "алгоритм",
+    "датасет",
+    "ознака",
+    "метрика",
+    "точність",
+    "повнота",
+    "f1-міра",
+    "середня абсолютна помилка",
+    "штучний інтелект",
+]
+
+
+class KeywordExtractor:
+    def __init__(self, max_keywords: int = 20):
+        self.max_keywords = max_keywords
+
+    def is_good_keyword(self, keyword: str) -> bool:
+        keyword = keyword.strip().lower()
+
+        if len(keyword) < 4:
+            return False
+
+        words = keyword.split()
+
+        if len(words) > 3:
+            return False
+
+        if keyword in BAD_KEYWORDS:
+            return False
+
+        if words[0] in BAD_KEYWORDS or words[-1] in BAD_KEYWORDS:
+            return False
+
+        return True
+
+    def extract_domain_terms(self, text: str) -> List[Dict]:
+        lower_text = text.lower()
+        result = []
+
+        for term in DOMAIN_TERMS:
+            if term in lower_text:
+                result.append({
+                    "keyword": term,
+                    "score": 3.0
+                })
+
+        return result
+
+    def extract_keywords(self, text: str) -> List[Dict]:
+        sentences = split_sentences(text)
+
+        if not sentences:
+            return []
+
+        result_map = {}
+
+        for item in self.extract_domain_terms(text):
+            result_map[item["keyword"]] = item["score"]
+
+        normalized_sentences = [normalize_for_ml(sentence) for sentence in sentences]
+        normalized_sentences = [s for s in normalized_sentences if s.strip()]
+
+        if normalized_sentences:
+            vectorizer = TfidfVectorizer(
+                ngram_range=(1, 2),
+                min_df=1,
+                max_df=0.95
+            )
+
+            matrix = vectorizer.fit_transform(normalized_sentences)
+            feature_names = vectorizer.get_feature_names_out()
+            scores = matrix.sum(axis=0).A1
+
+            ranked = sorted(
+                zip(feature_names, scores),
+                key=lambda item: item[1],
+                reverse=True
+            )
+
+            for keyword, score in ranked:
+                keyword = keyword.strip().lower()
+
+                if not self.is_good_keyword(keyword):
+                    continue
+
+                if keyword not in result_map:
+                    result_map[keyword] = float(score)
+
+        ranked_result = sorted(
+            result_map.items(),
+            key=lambda item: item[1],
+            reverse=True
+        )
+
+        return [
+            {
+                "keyword": keyword,
+                "score": round(float(score), 4)
+            }
+            for keyword, score in ranked_result[: self.max_keywords]
+        ]
+
+
+
+==================== .\ml-server\src\text_preprocessor.py ====================
+
+import re
+from typing import List
+
+
+UK_STOPWORDS = {
+    "і", "й", "та", "або", "але", "що", "це", "як", "для", "на", "у", "в", "до",
+    "з", "із", "за", "про", "при", "від", "над", "під", "між", "через",
+    "є", "бути", "було", "були", "може", "можуть", "має", "мають",
+    "який", "яка", "яке", "які", "також", "тому", "наприклад",
+    "the", "a", "an", "and", "or", "but", "is", "are", "to", "of", "in", "on", "for",
+}
+
+
+def clean_text(text: str) -> str:
+    if not text:
+        return ""
+
+    text = text.replace("\n", " ")
+    text = re.sub(r"\s+", " ", text)
+    text = text.strip()
+
+    return text
+
+
+def split_sentences(text: str) -> List[str]:
+    text = clean_text(text)
+
+    raw_sentences = re.split(r"(?<=[.!?])\s+", text)
+    sentences = []
+
+    for sentence in raw_sentences:
+        sentence = sentence.strip()
+        words = sentence.split()
+
+        if len(words) >= 6:
+            sentences.append(sentence)
+
+    return sentences
+
+
+def tokenize(text: str) -> List[str]:
+    text = text.lower()
+    tokens = re.findall(r"[a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9\-]+", text)
+
+    return [
+        token
+        for token in tokens
+        if len(token) > 2 and token not in UK_STOPWORDS
+    ]
+
+
+def normalize_for_ml(text: str) -> str:
+    return " ".join(tokenize(text))
+
+
+
+==================== .\ml-server\src\topic_model.py ====================
+
+from typing import List, Dict
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+
+from src.text_preprocessor import split_sentences, normalize_for_ml
+
+
+class TopicModel:
+    def __init__(self, max_topics: int = 3):
+        self.max_topics = max_topics
+
+    def detect_topics(self, text: str) -> List[Dict]:
+        sentences = split_sentences(text)
+
+        if len(sentences) < 3:
+            return [{
+                "topicId": 0,
+                "title": "Основна тема",
+                "sentences": sentences
+            }]
+
+        normalized = [normalize_for_ml(sentence) for sentence in sentences]
+        normalized = [item for item in normalized if item.strip()]
+
+        if len(normalized) < 3:
+            return [{
+                "topicId": 0,
+                "title": "Основна тема",
+                "sentences": sentences
+            }]
+
+        topic_count = min(self.max_topics, len(normalized))
+
+        vectorizer = TfidfVectorizer(
+            ngram_range=(1, 2),
+            min_df=1
+        )
+
+        matrix = vectorizer.fit_transform(normalized)
+
+        model = KMeans(
+            n_clusters=topic_count,
+            random_state=42,
+            n_init=10
+        )
+
+        labels = model.fit_predict(matrix)
+
+        topics = []
+
+        for topic_id in range(topic_count):
+            topic_sentences = [
+                sentences[i]
+                for i, label in enumerate(labels)
+                if label == topic_id
+            ]
+
+            if not topic_sentences:
+                continue
+
+            topics.append({
+                "topicId": int(topic_id),
+                "title": f"Тема {topic_id + 1}",
+                "sentences": topic_sentences
+            })
+
+        return topics
+
+
+
+==================== .\ml-server\src\difficulty_model.py ====================
+
+from typing import List
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+
+from src.text_preprocessor import tokenize
+
+
+class DifficultyModel:
+    def __init__(self):
+        self.model = RandomForestClassifier(
+            n_estimators=120,
+            random_state=42,
+            max_depth=6
+        )
+        self.is_trained = False
+
+    def extract_features(self, sentence: str) -> List[float]:
+        tokens = tokenize(sentence)
+
+        word_count = len(tokens)
+        char_count = len(sentence)
+        avg_word_len = np.mean([len(token) for token in tokens]) if tokens else 0
+        long_words = len([token for token in tokens if len(token) >= 8])
+        comma_count = sentence.count(",")
+        special_terms = len([
+            token for token in tokens
+            if token in {
+                "класифікація", "регресія", "кластеризація",
+                "нейронна", "модель", "алгоритм", "датасет",
+                "вектор", "ознака", "навчання", "ймовірність",
+                "функція", "помилка", "оптимізація"
+            }
+        ])
+
+        return [
+            word_count,
+            char_count,
+            avg_word_len,
+            long_words,
+            comma_count,
+            special_terms
+        ]
+
+    def auto_label(self, sentence: str) -> int:
+        features = self.extract_features(sentence)
+
+        word_count = features[0]
+        long_words = features[3]
+        special_terms = features[5]
+
+        score = 0
+
+        if word_count > 14:
+            score += 1
+
+        if long_words >= 3:
+            score += 1
+
+        if special_terms >= 2:
+            score += 1
+
+        if score <= 1:
+            return 1
+
+        if score == 2:
+            return 2
+
+        return 3
+
+    def train(self, sentences: List[str]):
+        if not sentences:
+            return
+
+        x = [self.extract_features(sentence) for sentence in sentences]
+        y = [self.auto_label(sentence) for sentence in sentences]
+
+        if len(set(y)) < 2:
+            y = [1 if i % 3 == 0 else 2 if i % 3 == 1 else 3 for i in range(len(sentences))]
+
+        self.model.fit(x, y)
+        self.is_trained = True
+
+    def predict(self, sentence: str) -> int:
+        if not self.is_trained:
+            return self.auto_label(sentence)
+
+        features = [self.extract_features(sentence)]
+        return int(self.model.predict(features)[0])
+
+
+
+==================== .\ml-server\src\train_quiz_models.py ====================
+
+import json
+from pathlib import Path
+
+from src.dataset_loader import prepare_qa_dataset, load_prepared_dataset
+from src.answer_candidate_model import AnswerCandidateModel, MODEL_PATH
+
+
+REPORT_PATH = Path(__file__).resolve().parents[1] / "models" / "training_report.json"
+
+
+def main():
+    dataset = load_prepared_dataset()
+
+    if len(dataset) < 100:
+        dataset = prepare_qa_dataset(limit=3000)
+
+    print(f"Dataset records: {len(dataset)}")
+
+    model = AnswerCandidateModel()
+
+    report = model.train(
+        dataset=dataset,
+        max_records=min(2500, len(dataset))
+    )
+
+    model.save(MODEL_PATH)
+
+    REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(REPORT_PATH, "w", encoding="utf-8") as file:
+        json.dump(report, file, ensure_ascii=False, indent=2)
+
+    print("Answer candidate model trained.")
+    print(f"Model saved to: {MODEL_PATH}")
+    print(f"Report saved to: {REPORT_PATH}")
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
+

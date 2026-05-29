@@ -1659,159 +1659,70 @@ const getUserSocialLearningSignals = async (userId) => {
 };
 
 const applySocialSignalsToRecommendations = (result, socialSignals) => {
-  if (!result?.recommendations?.length) {
+  if (!result?.recommendations?.length || !socialSignals?.totalSignals) {
     return {
       ...result,
       socialSignals,
-      modelType: result?.modelType || 'Studdy ML recommendations',
     };
   }
 
-  const interactedPostIds = new Set(socialSignals?.interactedPostIds || []);
-
+  const interactedPostIds = new Set(socialSignals.interactedPostIds || []);
   const preferredCategories = new Map(
-    (socialSignals?.preferredCategories || []).map((item) => [
+    (socialSignals.preferredCategories || []).map((item) => [
       item.category,
-      Number(item.score || 0),
+      item.score,
     ])
   );
-
   const preferredAuthors = new Map(
-    (socialSignals?.preferredAuthors || []).map((item) => [
+    (socialSignals.preferredAuthors || []).map((item) => [
       item.authorId,
-      Number(item.score || 0),
+      item.score,
     ])
   );
 
-  const getItemId = (item) =>
-    item.id ||
-    item.$id ||
-    item.contentId ||
-    item.postId ||
-    item.lessonId ||
-    item.courseId ||
-    null;
+  const recommendations = result.recommendations
+    .map((item) => {
+      let boost = 0;
+      const reasons = [];
 
-  const getItemType = (item) =>
-    item.type ||
-    item.recommendationType ||
-    item.contentType ||
-    item.entityType ||
-    'material';
+      if (item.type === 'post' && interactedPostIds.has(item.id)) {
+        boost += 8;
+        reasons.push('ти вже взаємодіяв з подібним матеріалом');
+      }
 
-  const getItemCategory = (item) =>
-    item.category ||
-    item.matchedTopic ||
-    item.topic ||
-    item.mainTopic ||
-    null;
+      if (item.category && preferredCategories.has(item.category)) {
+        boost += Math.min(12, preferredCategories.get(item.category));
+        reasons.push(`категорія "${item.category}" часто зустрічається у твоїх діях`);
+      }
 
-  const getItemAuthor = (item) =>
-    item.authorId ||
-    item.creatorId ||
-    item.userId ||
-    null;
+      if (item.authorId && preferredAuthors.has(item.authorId)) {
+        boost += Math.min(8, preferredAuthors.get(item.authorId));
+        reasons.push('автор схожий на тих, чиї матеріали ти лайкав або коментував');
+      }
 
-  const normalized = result.recommendations.map((item) => {
-    const id = getItemId(item);
-    const type = getItemType(item);
-    const category = getItemCategory(item);
-    const authorId = getItemAuthor(item);
+      const nextScore = Math.min(100, Math.round(Number(item.score || 0) + boost));
 
-    const isExactInteractedPost =
-      type === 'post' && id && interactedPostIds.has(id);
-
-    let boost = 0;
-    const reasons = [];
-
-    if (category && preferredCategories.has(category)) {
-      boost += Math.min(18, preferredCategories.get(category));
-      reasons.push(`схожа категорія: "${category}"`);
-    }
-
-    if (authorId && preferredAuthors.has(authorId)) {
-      boost += Math.min(10, preferredAuthors.get(authorId));
-      reasons.push('схожий автор або джерело');
-    }
-
-    if (isExactInteractedPost) {
-      boost -= 100;
-      reasons.push('цей матеріал уже був у твоїх взаємодіях, тому Studdy не просуває його повторно');
-    }
-
-    const baseScore = Number(
-      item.score ||
-      item.recommendationScore ||
-      item.priorityScore ||
-      50
-    );
-
-    const nextScore = Math.max(0, Math.min(100, Math.round(baseScore + boost)));
-
-    const socialReason =
-      reasons.length && !isExactInteractedPost
-        ? ` Додатково враховано: ${reasons.join(', ')}.`
-        : '';
-
-    return {
-      ...item,
-      id,
-      type,
-      category,
-      authorId,
-      score: nextScore,
-      recommendationScore: nextScore,
-      isExactInteractedPost,
-      reason:
-        item.reason ||
-        item.explanation
-          ? `${item.reason || item.explanation}${socialReason}`
-          : `Рекомендовано Studdy ML.${socialReason}`,
-    };
-  });
-
-  const filtered = normalized
-    .filter((item) => !item.isExactInteractedPost)
+      return {
+        ...item,
+        score: nextScore,
+        reason:
+          boost > 0
+            ? `${item.reason || 'Рекомендовано Studdy ML.'} Додатково враховано: ${reasons.join(', ')}.`
+            : item.reason,
+      };
+    })
     .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
-
-  const categoryLimits = new Map();
-  const typeLimits = new Map();
-
-  const diversified = [];
-
-  for (const item of filtered) {
-    const category = item.category || 'general';
-    const type = item.type || 'material';
-
-    const categoryCount = categoryLimits.get(category) || 0;
-    const typeCount = typeLimits.get(type) || 0;
-
-    if (categoryCount >= 3 || typeCount >= 6) {
-      continue;
-    }
-
-    diversified.push(item);
-    categoryLimits.set(category, categoryCount + 1);
-    typeLimits.set(type, typeCount + 1);
-  }
-
-  const finalRecommendations = diversified.length
-    ? diversified
-    : filtered.length
-    ? filtered
-    : normalized.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
 
   return {
     ...result,
-    recommendations: finalRecommendations,
+    recommendations,
     socialSignals,
-    recommendationPolicy:
-      'similar_content_without_recommending_exact_interacted_posts',
     modelType: result.modelType
-      ? `${result.modelType} + social similarity + diversity filter`
-      : 'Studdy ML + social similarity + diversity filter',
+      ? `${result.modelType} + social interactions`
+      : 'Studdy ML + social interactions',
   };
 };
+
 
 export const getUserContentRecommendations = async (userId) => {
   if (!userId) {
@@ -1992,266 +1903,4 @@ export async function saveMlGeneratedQuiz({
 
 
 
-
-
-
-export const getUserGamificationProfile = async (userId) => {
-  if (!userId) {
-    return {
-      xp: 0,
-      level: 1,
-      rank: 'Новачок',
-      levelProgress: 0,
-      nextLevelXp: 280,
-      counters: {},
-      dailyQuest: {},
-      achievements: [],
-    };
-  }
-
-  const safeList = async (collectionId, queries) => {
-    try {
-      const result = await databases.listDocuments(databaseId, collectionId, queries);
-      return result.documents || [];
-    } catch (error) {
-      console.log('gamification safeList error:', collectionId, error);
-      return [];
-    }
-  };
-
-  const isToday = (dateValue) => {
-    if (!dateValue) return false;
-
-    const date = new Date(dateValue);
-    const today = new Date();
-
-    return (
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate()
-    );
-  };
-
-  const getRank = (level) => {
-    if (level >= 26) return 'Studdy Master';
-    if (level >= 19) return 'Data Specialist';
-    if (level >= 13) return 'ML Explorer';
-    if (level >= 8) return 'Аналітик';
-    if (level >= 4) return 'Дослідник';
-    return 'Новачок';
-  };
-
-  const getCorrectValue = (answer) => {
-    if (typeof answer?.isCorrect === 'boolean') return answer.isCorrect;
-    if (typeof answer?.correct === 'boolean') return answer.correct;
-    if (typeof answer?.isRight === 'boolean') return answer.isRight;
-
-    if (
-      answer?.selectedOption &&
-      answer?.correctOption &&
-      answer.selectedOption === answer.correctOption
-    ) {
-      return true;
-    }
-
-    return false;
-  };
-
-  try {
-    const [answers, likes, saves, comments, viewEvents, searchEvents] =
-      await Promise.all([
-        getUserQuizAnswers(userId),
-        safeList(likesCollectionId, [
-          Query.equal('userId', userId),
-          Query.limit(100),
-        ]),
-        safeList(savesCollectionId, [
-          Query.equal('userId', userId),
-          Query.limit(100),
-        ]),
-        safeList(commentsCollectionId, [
-          Query.equal('authorId', userId),
-          Query.limit(100),
-        ]),
-        safeList(viewEventsCollectionId, [
-          Query.equal('userId', userId),
-          Query.limit(100),
-        ]),
-        safeList(searchEventsCollectionId, [
-          Query.equal('userId', userId),
-          Query.limit(100),
-        ]),
-      ]);
-
-    const totalAnswers = answers.length;
-    const correctAnswers = answers.filter(getCorrectValue).length;
-    const incorrectAnswers = Math.max(totalAnswers - correctAnswers, 0);
-
-    const todayAnswers = answers.filter((item) => isToday(item.$createdAt));
-    const todayLikes = likes.filter((item) => isToday(item.$createdAt));
-    const todaySaves = saves.filter((item) => isToday(item.$createdAt));
-    const todayComments = comments.filter((item) => isToday(item.$createdAt));
-    const todayViews = viewEvents.filter((item) => isToday(item.$createdAt));
-    const todaySearches = searchEvents.filter((item) => isToday(item.$createdAt));
-
-    const videoViews = viewEvents.filter(
-      (item) => item.source === 'video_feed' || item.source === 'shorts'
-    );
-
-    const lessonViews = viewEvents.filter((item) => item.contentType === 'lesson');
-    const courseViews = viewEvents.filter((item) => item.contentType === 'course');
-
-    const todayVideoViews = todayViews.filter(
-      (item) => item.source === 'video_feed' || item.source === 'shorts'
-    );
-
-    const todayRecommendationViews = todayViews.filter(
-      (item) =>
-        item.source === 'ml_recommendation' ||
-        item.source === 'recommendation' ||
-        item.source === 'home_feed'
-    );
-
-    const activeDates = new Set(
-      [
-        ...answers,
-        ...likes,
-        ...saves,
-        ...comments,
-        ...viewEvents,
-        ...searchEvents,
-      ]
-        .map((item) => item.$createdAt)
-        .filter(Boolean)
-        .map((date) => new Date(date).toDateString())
-    );
-
-    let streakDays = 0;
-    const cursor = new Date();
-
-    while (activeDates.has(cursor.toDateString())) {
-      streakDays += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-
-    const accuracy = totalAnswers
-      ? Math.round((correctAnswers / totalAnswers) * 100)
-      : 0;
-
-    const xp =
-      correctAnswers * 16 +
-      incorrectAnswers * 4 +
-      likes.length * 4 +
-      saves.length * 8 +
-      comments.length * 10 +
-      viewEvents.length * 3 +
-      searchEvents.length * 2 +
-      videoViews.length * 6 +
-      lessonViews.length * 10 +
-      courseViews.length * 18 +
-      streakDays * 20;
-
-    const xpPerLevel = 280;
-    const level = Math.max(1, Math.floor(xp / xpPerLevel) + 1);
-    const levelBase = (level - 1) * xpPerLevel;
-    const nextLevelXp = level * xpPerLevel;
-    const levelProgress = Math.min(
-      100,
-      Math.max(0, Math.round(((xp - levelBase) / xpPerLevel) * 100))
-    );
-
-    const dailyQuest = {
-      watchedShort: todayVideoViews.length > 0,
-      interacted:
-        todayLikes.length + todaySaves.length + todayComments.length > 0,
-      quizCompleted: todayAnswers.length > 0,
-      openedRecommendation: todayRecommendationViews.length > 0,
-      todayActions:
-        todayAnswers.length +
-        todayLikes.length +
-        todaySaves.length +
-        todayComments.length +
-        todayViews.length +
-        todaySearches.length,
-    };
-
-    return {
-      xp,
-      level,
-      rank: getRank(level),
-      levelProgress,
-      nextLevelXp,
-      accuracy,
-      streakDays,
-      counters: {
-        totalAnswers,
-        correctAnswers,
-        incorrectAnswers,
-        likesCount: likes.length,
-        savesCount: saves.length,
-        commentsCount: comments.length,
-        viewsCount: viewEvents.length,
-        searchesCount: searchEvents.length,
-        videoViewsCount: videoViews.length,
-        lessonViewsCount: lessonViews.length,
-        courseViewsCount: courseViews.length,
-        todayActions: dailyQuest.todayActions,
-      },
-      dailyQuest,
-      achievements: [
-        {
-          icon: '🎯',
-          title: 'Перший прорив',
-          description: '10 правильних відповідей',
-          unlocked: correctAnswers >= 10,
-        },
-        {
-          icon: '🎬',
-          title: 'Shorts-навчання',
-          description: '5 коротких відео',
-          unlocked: videoViews.length >= 5,
-        },
-        {
-          icon: '💬',
-          title: 'Активний учасник',
-          description: '3 коментарі',
-          unlocked: comments.length >= 3,
-        },
-        {
-          icon: '💾',
-          title: 'Колекціонер знань',
-          description: '3 збережені матеріали',
-          unlocked: saves.length >= 3,
-        },
-        {
-          icon: '🧠',
-          title: 'Точний мозок',
-          description: '70%+ точності',
-          unlocked: accuracy >= 70 && totalAnswers >= 5,
-        },
-        {
-          icon: '🚀',
-          title: 'Новий рівень',
-          description: 'Досягни рівня 5',
-          unlocked: level >= 5,
-        },
-      ],
-    };
-  } catch (error) {
-    console.log('getUserGamificationProfile error:', error);
-
-    return {
-      xp: 0,
-      level: 1,
-      rank: 'Новачок',
-      levelProgress: 0,
-      nextLevelXp: 280,
-      accuracy: 0,
-      streakDays: 0,
-      counters: {},
-      dailyQuest: {},
-      achievements: [],
-    };
-  }
-};
 
