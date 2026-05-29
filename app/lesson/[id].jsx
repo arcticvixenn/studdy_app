@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -16,6 +17,8 @@ import {
   getLessonById,
   getLessonQuiz,
 } from '../../lib/appwrite';
+
+import { setMlQuizDraft } from '../../lib/mlQuizDraftStore';
 
 const LessonDetails = () => {
   const { id } = useLocalSearchParams();
@@ -45,6 +48,35 @@ const LessonDetails = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenMlQuizGenerator = () => {
+    const lessonText = lesson?.content || lesson?.description || '';
+
+    if (!lessonText.trim()) {
+      Alert.alert(
+        'Недостатньо даних',
+        'Для ML-генерації тесту потрібно додати текстовий матеріал уроку.'
+      );
+      return;
+    }
+
+    if (lessonText.trim().length < 80) {
+      Alert.alert(
+        'Замало тексту',
+        'Для якісної ML-генерації потрібно більше навчального тексту.'
+      );
+      return;
+    }
+
+    setMlQuizDraft({
+      lessonId: lesson?.$id,
+      courseId: lesson?.courseId,
+      title: lesson?.title || 'Навчальний матеріал',
+      text: lessonText,
+    });
+
+    router.push('/quiz/ml-preview');
   };
 
   useFocusEffect(
@@ -129,19 +161,36 @@ const LessonDetails = () => {
         ) : null}
 
         {quiz ? (
-          <TouchableOpacity
-            onPress={() => router.push(`/quiz/${quiz.$id}`)}
-            activeOpacity={0.85}
-            className="bg-secondary rounded-2xl p-5 mt-7"
-          >
-            <Text className="text-primary text-lg font-psemibold">
-              Пройти тест після уроку
-            </Text>
+          <View className="mt-7">
+            <TouchableOpacity
+              onPress={() => router.push(`/quiz/${quiz.$id}`)}
+              activeOpacity={0.85}
+              className="bg-secondary rounded-2xl p-5"
+            >
+              <Text className="text-primary text-lg font-psemibold">
+                Пройти тест після уроку
+              </Text>
 
-            <Text className="text-primary mt-1">
-              {quiz.title}
-            </Text>
-          </TouchableOpacity>
+              <Text className="text-primary mt-1">
+                {quiz.title}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleOpenMlQuizGenerator}
+              activeOpacity={0.85}
+              className="bg-black-100 border border-secondary rounded-2xl p-5 mt-4"
+            >
+              <Text className="text-secondary text-lg font-psemibold">
+                Згенерувати новий тест за допомогою ML
+              </Text>
+
+              <Text className="text-gray-100 mt-1 leading-6">
+                Система проаналізує текст уроку, виділить ключові поняття,
+                визначить складність і сформує нові тестові питання.
+              </Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View className="mt-7">
             <View className="bg-black-100 border border-black-200 rounded-2xl p-5">
@@ -150,8 +199,8 @@ const LessonDetails = () => {
               </Text>
 
               <Text className="text-gray-100 mt-2 leading-6">
-                  Автоматичну генерацію тестів видалено. Тест можна створити вручну,
-                  щоб він був стабільним і не залежав від зовнішніх сервісів.
+                Тест можна створити вручну або згенерувати за допомогою
+                локального ML/NLP-модуля, який аналізує навчальний текст уроку.
               </Text>
             </View>
 
@@ -170,6 +219,21 @@ const LessonDetails = () => {
 
               <Text className="text-primary mt-1">
                 Додай питання, варіанти відповідей і пояснення.
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleOpenMlQuizGenerator}
+              activeOpacity={0.85}
+              className="bg-black-100 border border-secondary rounded-2xl p-5 mt-4"
+            >
+              <Text className="text-secondary text-lg font-psemibold">
+                Згенерувати тест за допомогою ML
+              </Text>
+
+              <Text className="text-gray-100 mt-1 leading-6">
+                Система проаналізує текст уроку, виділить ключові поняття,
+                визначить теми, оцінить складність і сформує тестові питання.
               </Text>
             </TouchableOpacity>
           </View>

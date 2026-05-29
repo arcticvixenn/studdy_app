@@ -116,6 +116,15 @@ const CourseDetails = () => {
 
   const canManage = course?.authorId === user?.$id;
 
+  const handleGoBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/learn');
+  };
+
   const confirmAction = (message) => {
     if (Platform.OS === 'web') {
       return window.confirm(message);
@@ -175,7 +184,7 @@ const CourseDetails = () => {
   if (loading) {
     return (
       <SafeAreaView className="bg-primary h-full justify-center items-center">
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#FF9C01" />
       </SafeAreaView>
     );
   }
@@ -195,7 +204,7 @@ const CourseDetails = () => {
         ListHeaderComponent={() => (
           <View className="mb-5">
             <View className="px-4 pt-5">
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={handleGoBack}>
                 <Text className="text-secondary font-psemibold mb-5">
                   ← Назад
                 </Text>
