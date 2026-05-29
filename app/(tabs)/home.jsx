@@ -19,8 +19,8 @@ import PostCard from '../../components/PostCard';
 import {
   createViewEvent,
   getAllPosts,
+  getUserContentRecommendations,
 } from '../../lib/appwrite';
-import { getPythonMlRecommendations } from '../../lib/pythonMlApi';
 import useAppwrite from '../../lib/useAppwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
@@ -70,7 +70,7 @@ const RecommendationCard = ({ item, user }) => {
         </Text>
 
         <Text className="text-gray-100 text-xs">
-          {item.score}% збіг
+          {item.score ? `${item.score}% збіг` : 'Рекомендовано'}
         </Text>
       </View>
 
@@ -99,7 +99,7 @@ const MlRecommendationsBlock = ({ ml, loading, user }) => {
   if (loading) {
     return (
       <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
-        <ActivityIndicator />
+        <ActivityIndicator color="#FF9C01" />
         <Text className="text-gray-100 text-sm text-center mt-3">
           Завантаження ML-рекомендацій...
         </Text>
@@ -115,13 +115,13 @@ const MlRecommendationsBlock = ({ ml, loading, user }) => {
         </Text>
 
         <Text className="text-gray-100 text-sm leading-5 mt-3">
-          Python ML-модель зможе підібрати курси, уроки, пости й відео після
-          накопичення навчальних даних.
+          Studdy зможе підібрати персональні курси, уроки, пости й відео
+          після накопичення більшої кількості навчальних даних.
         </Text>
 
-        {ml?.message ? (
+        {ml?.reason || ml?.message ? (
           <Text className="text-yellow-400 text-xs mt-3">
-            {ml.message}
+            {ml.reason || ml.message}
           </Text>
         ) : null}
       </View>
@@ -141,7 +141,7 @@ const MlRecommendationsBlock = ({ ml, loading, user }) => {
 
       <View className="bg-primary border border-black-200 rounded-xl p-3 mt-4">
         <Text className="text-gray-100 text-xs">
-          Модель: {ml.modelType}
+          Модель: {ml.modelType || ml.model || 'Studdy ML recommendations'}
         </Text>
 
         {ml.metrics ? (
@@ -161,7 +161,7 @@ const MlRecommendationsBlock = ({ ml, loading, user }) => {
       {ml.recommendations?.length ? (
         <FlatList
           data={ml.recommendations}
-          keyExtractor={(item) => `${item.type}-${item.id}`}
+          keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
           renderItem={({ item }) => (
             <RecommendationCard item={item} user={user} />
           )}
@@ -192,10 +192,18 @@ const Home = () => {
     setMlLoading(true);
 
     try {
-      const result = await getPythonMlRecommendations(user.$id);
+      const result = await getUserContentRecommendations(user.$id);
       setMlRecommendations(result);
     } catch (error) {
-      console.log('load python ml recommendations error:', error);
+      console.log('load ml recommendations error:', error);
+
+      setMlRecommendations({
+        trained: false,
+        recommendations: [],
+        samples: 0,
+        model: 'Studdy ML recommendations',
+        reason: 'Не вдалося завантажити рекомендації.',
+      });
     } finally {
       setMlLoading(false);
     }
