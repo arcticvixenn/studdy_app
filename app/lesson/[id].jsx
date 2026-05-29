@@ -19,6 +19,7 @@ import {
 
 const LessonDetails = () => {
   const { id } = useLocalSearchParams();
+
   const lessonId = Array.isArray(id) ? id[0] : id;
 
   const [lesson, setLesson] = useState(null);
@@ -54,82 +55,74 @@ const LessonDetails = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="bg-primary h-full justify-center items-center">
-        <ActivityIndicator size="large" />
+      <SafeAreaView className="bg-primary h-full items-center justify-center">
+        <ActivityIndicator size="large" color="#FF9C01" />
+        <Text className="text-gray-100 mt-4">Завантаження уроку...</Text>
       </SafeAreaView>
     );
   }
 
-  const hasTextContent = Boolean(lesson?.content?.trim());
-
-  const canGenerateQuiz =
-    lesson?.mediaType === 'text' &&
-    hasTextContent &&
-    !quiz;
-
   return (
     <SafeAreaView className="bg-primary h-full">
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 36,
-        }}
-      >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-secondary font-psemibold mb-5">
-            ← Назад
-          </Text>
+      <ScrollView className="px-4 py-6">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+          className="mb-5"
+        >
+          <Text className="text-secondary text-base">← Назад</Text>
         </TouchableOpacity>
 
-        <Text className="text-secondary text-sm font-psemibold mb-2">
-          Урок {lesson?.lessonOrder}
-        </Text>
-
-        <Text className="text-white text-3xl font-psemibold">
-          {lesson?.title}
-        </Text>
-
-        {lesson?.description ? (
-          <Text className="text-gray-100 text-sm leading-5 mt-4">
-            {lesson.description}
+        <View className="bg-black-100 rounded-2xl p-5 border border-black-200">
+          <Text className="text-gray-100 text-sm mb-2">
+            Урок {lesson?.lessonOrder}
           </Text>
-        ) : null}
+
+          <Text className="text-white text-2xl font-psemibold mb-3">
+            {lesson?.title}
+          </Text>
+
+          {lesson?.description ? (
+            <Text className="text-gray-100 text-base leading-6">
+              {lesson.description}
+            </Text>
+          ) : null}
+        </View>
 
         {lesson?.mediaType === 'video' && lesson?.videoUrl ? (
-          <View className="w-full h-60 bg-black rounded-2xl overflow-hidden mt-6">
+          <View className="mt-6 bg-black-100 rounded-2xl overflow-hidden border border-black-200">
             {Platform.OS === 'web' ? (
               <video
                 src={lesson.videoUrl}
                 controls
                 style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
+                  height: 260,
                   backgroundColor: '#000',
                 }}
               />
             ) : (
               <Video
                 source={{ uri: lesson.videoUrl }}
+                useNativeControls
+                resizeMode={ResizeMode.CONTAIN}
                 style={{
                   width: '100%',
-                  height: '100%',
+                  height: 260,
+                  backgroundColor: '#000',
                 }}
-                resizeMode={ResizeMode.CONTAIN}
-                useNativeControls
               />
             )}
           </View>
         ) : null}
 
         {lesson?.content ? (
-          <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-6">
+          <View className="bg-black-100 rounded-2xl p-5 mt-6 border border-black-200">
             <Text className="text-white text-lg font-psemibold mb-3">
               Матеріал уроку
             </Text>
 
-            <Text className="text-gray-100 text-sm leading-6">
+            <Text className="text-gray-100 text-base leading-7">
               {lesson.content}
             </Text>
           </View>
@@ -145,46 +138,22 @@ const LessonDetails = () => {
               Пройти тест після уроку
             </Text>
 
-            <Text className="text-primary/80 mt-2">
+            <Text className="text-primary mt-1">
               {quiz.title}
             </Text>
           </TouchableOpacity>
         ) : (
-          <>
-            {canGenerateQuiz ? (
-              <TouchableOpacity
-                onPress={() =>
-                  router.push(
-                    `/quiz/generate?lessonId=${lesson?.$id}&courseId=${lesson?.courseId}`
-                  )
-                }
-                activeOpacity={0.85}
-                className="bg-secondary rounded-2xl p-5 mt-7"
-              >
-                <Text className="text-primary text-lg font-psemibold">
-                  Згенерувати тест автоматично
-                </Text>
+          <View className="mt-7">
+            <View className="bg-black-100 border border-black-200 rounded-2xl p-5">
+              <Text className="text-white text-lg font-psemibold">
+                Тест до цього уроку ще не створено
+              </Text>
 
-                <Text className="text-primary/80 mt-2">
-                  Studdy створить питання на основі тексту уроку.
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <View className="bg-black-100 border border-black-200 rounded-2xl p-5 mt-7">
-                <Text className="text-gray-100 text-sm leading-5">
-                  Автоматична генерація доступна тільки для текстових уроків із
-                  заповненим матеріалом.
-                </Text>
-
-                <Text className="text-gray-100 text-xs mt-3">
-                  Тип уроку: {lesson?.mediaType || 'невідомо'}
-                </Text>
-
-                <Text className="text-gray-100 text-xs mt-1">
-                  Текст уроку: {hasTextContent ? 'є' : 'немає'}
-                </Text>
-              </View>
-            )}
+              <Text className="text-gray-100 mt-2 leading-6">
+                  Автоматичну генерацію тестів видалено. Тест можна створити вручну,
+                  щоб він був стабільним і не залежав від зовнішніх сервісів.
+              </Text>
+            </View>
 
             <TouchableOpacity
               onPress={() =>
@@ -193,17 +162,17 @@ const LessonDetails = () => {
                 )
               }
               activeOpacity={0.85}
-              className="bg-black-100 border border-secondary rounded-2xl p-5 mt-4"
+              className="bg-secondary rounded-2xl p-5 mt-4"
             >
-              <Text className="text-secondary text-lg font-psemibold">
+              <Text className="text-primary text-lg font-psemibold">
                 Створити тест вручну
               </Text>
 
-              <Text className="text-gray-100 mt-2">
-                Додай власні питання, варіанти відповідей і пояснення.
+              <Text className="text-primary mt-1">
+                Додай питання, варіанти відповідей і пояснення.
               </Text>
             </TouchableOpacity>
-          </>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
