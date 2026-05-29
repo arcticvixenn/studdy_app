@@ -1,0 +1,50 @@
+[
+  {
+    "title": "Типи машинного навчання",
+    "outputFile": "api_test_results\\1_типи_машинного_навчання.json",
+    "statistics": {
+      "sentenceCount": 8,
+      "keywordCount": 20,
+      "topicCount": 3,
+      "questionCount": 5
+    },
+    "questionCount": 5,
+    "error": null
+  },
+  {
+    "title": "Нейронні мережі",
+    "outputFile": "api_test_results\\2_нейроннi_мережi.json",
+    "statistics": {
+      "sentenceCount": 8,
+      "keywordCount": 20,
+      "topicCount": 3,
+      "questionCount": 5
+    },
+    "questionCount": 5,
+    "error": null
+  },
+  {
+    "title": "Рекомендаційні системи",
+    "outputFile": "api_test_results\\3_рекомендацiйнi_системи.json",
+    "statistics": {
+      "sentenceCount": 8,
+      "keywordCount": 20,
+      "topicCount": 3,
+      "questionCount": 5
+    },
+    "questionCount": 5,
+    "error": null
+  },
+  {
+    "title": "Метрики якості моделей",
+    "outputFile": "api_test_results\\4_метрики_якостi_моделей.json",
+    "statistics": {
+      "sentenceCount": 8,
+      "keywordCount": 20,
+      "topicCount": 3,
+      "questionCount": 5
+    },
+    "questionCount": 5,
+    "error": null
+  }
+]

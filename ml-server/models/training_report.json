@@ -1,0 +1,9 @@
+{
+  "trainRows": 236777,
+  "testRows": 59195,
+  "positiveLabels": 10312,
+  "negativeLabels": 285660,
+  "accuracy": 0.6939,
+  "positivePrecision": 0.0577,
+  "positiveRecall": 0.5082
+}

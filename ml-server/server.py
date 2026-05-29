@@ -1,3 +1,4 @@
+﻿from src.quiz_routes import router as quiz_router
 import os
 from typing import Any, Dict, List
 
@@ -145,7 +146,7 @@ def is_repetitive_text(text: str) -> bool:
     if len(value) >= 7 and len(unique_chars) <= 3:
         return True
 
-    vowels = set("аеєиіїоуюяaeiou")
+    vowels = set("Р°РµС”РёС–С—РѕСѓСЋСЏaeiou")
     vowel_count = sum(1 for char in value if char in vowels)
 
     if len(value) >= 7 and vowel_count <= 1:
@@ -175,7 +176,7 @@ def is_bad_title(title: str) -> bool:
         "asaaaaaaaa",
         "fgdfgfdg",
         "test",
-        "тест",
+        "С‚РµСЃС‚",
     }
 
     if cleaned in blocked_test_titles:
@@ -320,7 +321,7 @@ def build_user_profiles(
         if not user_id:
             continue
 
-        topic = answer.get("topic") or "Без теми"
+        topic = answer.get("topic") or "Р‘РµР· С‚РµРјРё"
         is_correct = bool(answer.get("isCorrect"))
         difficulty = int(answer.get("difficulty") or 1)
 
@@ -614,7 +615,7 @@ def train_model():
     if dataset.empty or dataset["label"].nunique() < 2:
         raise HTTPException(
             status_code=400,
-            detail="Недостатньо різноманітних даних для навчання ML-моделі.",
+            detail="РќРµРґРѕСЃС‚Р°С‚РЅСЊРѕ СЂС–Р·РЅРѕРјР°РЅС–С‚РЅРёС… РґР°РЅРёС… РґР»СЏ РЅР°РІС‡Р°РЅРЅСЏ ML-РјРѕРґРµР»С–.",
         )
 
     for column in FEATURE_COLUMNS:
@@ -714,7 +715,7 @@ def recommend_for_user(user_id: str):
     if user_id not in profiles:
         return {
             "trained": False,
-            "message": "Для користувача ще недостатньо навчальних даних.",
+            "message": "Р”Р»СЏ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° С‰Рµ РЅРµРґРѕСЃС‚Р°С‚РЅСЊРѕ РЅР°РІС‡Р°Р»СЊРЅРёС… РґР°РЅРёС….",
             "recommendations": [],
         }
 
@@ -724,7 +725,7 @@ def recommend_for_user(user_id: str):
     if dataset.empty:
         return {
             "trained": False,
-            "message": "Немає контенту для рекомендацій.",
+            "message": "РќРµРјР°С” РєРѕРЅС‚РµРЅС‚Сѓ РґР»СЏ СЂРµРєРѕРјРµРЅРґР°С†С–Р№.",
             "recommendations": [],
         }
 
@@ -753,13 +754,13 @@ def recommend_for_user(user_id: str):
         recommendations.append({
             "id": item["id"],
             "type": item["type"],
-            "title": item.get("title") or "Навчальний матеріал",
+            "title": item.get("title") or "РќР°РІС‡Р°Р»СЊРЅРёР№ РјР°С‚РµСЂС–Р°Р»",
             "score": round(float(row["score"]) * 100, 1),
             "courseId": item.get("courseId"),
             "mediaType": item.get("mediaType"),
             "reason": (
-                "Модель підібрала цей матеріал на основі слабких тем, "
-                "пошукової активності, переглядів, профілю знань та схожості контенту."
+                "РњРѕРґРµР»СЊ РїС–РґС–Р±СЂР°Р»Р° С†РµР№ РјР°С‚РµСЂС–Р°Р» РЅР° РѕСЃРЅРѕРІС– СЃР»Р°Р±РєРёС… С‚РµРј, "
+                "РїРѕС€СѓРєРѕРІРѕС— Р°РєС‚РёРІРЅРѕСЃС‚С–, РїРµСЂРµРіР»СЏРґС–РІ, РїСЂРѕС„С–Р»СЋ Р·РЅР°РЅСЊ С‚Р° СЃС…РѕР¶РѕСЃС‚С– РєРѕРЅС‚РµРЅС‚Сѓ."
             ),
         })
 
@@ -865,4 +866,16 @@ def debug_answer_sample():
         "samples": answers,
     }
 
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "server:app",
+        host="127.0.0.1",
+        port=6060,
+        reload=True
+    )
+
+
+app.include_router(quiz_router)
 
