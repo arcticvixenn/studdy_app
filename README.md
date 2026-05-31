@@ -1,4 +1,4 @@
-﻿# Studdy App — освітня соціальна платформа з ML-функціональністю
+# Studdy App — освітня соціальна платформа з ML-функціональністю
 
 Мобільний застосунок для роботи з навчальним контентом, персоналізованими рекомендаціями та автоматизованою генерацією тестових запитань на основі методів машинного навчання.
 
@@ -9,7 +9,7 @@
 - **ПІБ**: Швалінська Валерія Василівна
 - **Спеціальність**: F3 — Комп’ютерні науки
 - **Тема бакалаврської роботи**: Розробка моделей машинного навчання для освітньої соціальної платформи з інтерактивними функціями
-- **Гілка репозиторію**: dev
+- **Гілка репозиторію**: `dev`
 - **Дата виконання**: 2026
 - **Група**: вкажіть свою групу
 - **Керівник**: ас. Мисюк Р. В.
@@ -24,7 +24,7 @@
 - **ML-сервер**: Python, FastAPI
 - **Методи машинного навчання**: TF-IDF, cosine similarity, KMeans, Random Forest
 - **Репозиторій**: https://github.com/arcticvixenn/studdy_app.git
-- **Актуальна гілка**: dev
+- **Актуальна гілка**: `dev`
 
 Проєкт розроблено як практичну частину бакалаврської роботи. Основна ідея полягає у створенні освітньої соціальної платформи, де користувач може працювати з навчальними матеріалами, переглядати публікації, отримувати рекомендації та автоматично формувати тестові запитання на основі текстового матеріалу.
 
@@ -52,24 +52,24 @@
 
 | Файл / папка | Призначення |
 |---|---|
-| app/ | Екрани мобільного застосунку та маршрути Expo Router |
-| app/(tabs)/ | Основні вкладки застосунку |
-| components/ | Повторно використовувані UI-компоненти |
-| constants/ | Константи застосунку |
-| context/ | Контекст користувача та стан застосунку |
-| hooks/ | Користувацькі React-хуки |
-| lib/ | Робота з Appwrite, рекомендаціями та допоміжною логікою |
-| ml-server/ | Окремий Python/FastAPI ML-сервер |
-| ml-server/server.py | Основний файл запуску FastAPI-сервера |
-| ml-server/src/ | ML-логіка генерації тестів і моделей |
-| ml-server/models/ | Збережені ML-моделі |
-| ml-server/chapter4_test_results/ | Результати тестування для експериментального розділу |
-| ml-server/chapter5_results/ | Результати оцінювання ефективності моделей |
-| ml-server/chapter6_results/ | Результати перевірки надійності API |
-| scripts/ | Допоміжні скрипти для перевірки й налаштування Appwrite |
-| assets/ | Зображення та ресурси застосунку |
-| package.json | Залежності та команди запуску Expo-застосунку |
-| app.json | Конфігурація Expo |
+| `app/` | Екрани мобільного застосунку та маршрути Expo Router |
+| `app/(tabs)/` | Основні вкладки застосунку |
+| `components/` | Повторно використовувані UI-компоненти |
+| `constants/` | Константи застосунку |
+| `context/` | Контекст користувача та стан застосунку |
+| `hooks/` | Користувацькі React-хуки |
+| `lib/` | Робота з Appwrite, рекомендаціями та допоміжною логікою |
+| `ml-server/` | Окремий Python/FastAPI ML-сервер |
+| `ml-server/server.py` | Основний файл запуску FastAPI-сервера |
+| `ml-server/src/` | ML-логіка генерації тестів і моделей |
+| `ml-server/models/` | Збережені ML-моделі |
+| `ml-server/chapter4_test_results/` | Результати тестування для експериментального розділу |
+| `ml-server/chapter5_results/` | Результати оцінювання ефективності моделей |
+| `ml-server/chapter6_results/` | Результати перевірки надійності API |
+| `scripts/` | Допоміжні скрипти для перевірки й налаштування Appwrite |
+| `assets/` | Зображення та ресурси застосунку |
+| `package.json` | Залежності та команди запуску Expo-застосунку |
+| `app.json` | Конфігурація Expo |
 
 ---
 
@@ -110,16 +110,22 @@
 
 ### 1. Клонування репозиторію
 
-    git clone -b dev https://github.com/arcticvixenn/studdy_app.git
-    cd studdy_app
+```bash
+git clone -b dev https://github.com/arcticvixenn/studdy_app.git
+cd studdy_app
+```
 
 ### 2. Встановлення залежностей мобільного застосунку
 
-    npm install
+```bash
+npm install
+```
 
 ### 3. Запуск Expo-застосунку
 
-    npx expo start
+```bash
+npx expo start
+```
 
 Після запуску Expo застосунок можна відкрити через Expo Go на телефоні, Android Emulator або web-режим.
 
@@ -129,101 +135,121 @@
 
 ### 1. Перехід у папку ML-сервера
 
-    cd ml-server
+```bash
+cd ml-server
+```
 
 ### 2. Встановлення Python-залежностей
 
-    python -m pip install -r requirements.txt
-    python -m pip install appwrite python-dotenv matplotlib
+```bash
+python -m pip install -r requirements.txt
+python -m pip install appwrite python-dotenv matplotlib
+```
 
 ### 3. Запуск FastAPI-сервера
 
-    python -m uvicorn server:app --host 0.0.0.0 --port 6060 --reload
+```bash
+python -m uvicorn server:app --host 0.0.0.0 --port 6060 --reload
+```
 
 Локальна адреса сервера:
 
-    http://127.0.0.1:6060
+```text
+http://127.0.0.1:6060
+```
 
 Для тестування на фізичному телефоні потрібно використовувати IPv4-адресу ноутбука в локальній Wi-Fi мережі, наприклад:
 
-    http://192.168.1.104:6060
+```text
+http://192.168.1.104:6060
+```
 
 ---
 
 ## Налаштування середовища
 
-Для роботи з Appwrite потрібно створити локальний .env файл. Реальні ключі Appwrite не можна публікувати в GitHub.
+Для роботи з Appwrite потрібно створити локальний `.env` файл. Реальні ключі Appwrite не можна публікувати в GitHub.
 
-Приклад структури .env для ml-server:
+Приклад структури `.env` для `ml-server`:
 
-    APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
-    APPWRITE_PROJECT_ID=your_project_id
-    APPWRITE_API_KEY=your_api_key
-    APPWRITE_DATABASE_ID=your_database_id
-    APPWRITE_COURSES_COLLECTION_ID=courses
-    APPWRITE_LESSONS_COLLECTION_ID=lessons
-    APPWRITE_POSTS_COLLECTION_ID=posts
-    APPWRITE_QUIZ_ANSWERS_COLLECTION_ID=quiz_answers
-    APPWRITE_QUIZ_ATTEMPTS_COLLECTION_ID=quiz_attempts
-    APPWRITE_VIEW_EVENTS_COLLECTION_ID=view_events
-    APPWRITE_SEARCH_EVENTS_COLLECTION_ID=search_events
+```env
+APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=your_project_id
+APPWRITE_API_KEY=your_api_key
+APPWRITE_DATABASE_ID=your_database_id
+APPWRITE_COURSES_COLLECTION_ID=courses
+APPWRITE_LESSONS_COLLECTION_ID=lessons
+APPWRITE_POSTS_COLLECTION_ID=posts
+APPWRITE_QUIZ_ANSWERS_COLLECTION_ID=quiz_answers
+APPWRITE_QUIZ_ATTEMPTS_COLLECTION_ID=quiz_attempts
+APPWRITE_VIEW_EVENTS_COLLECTION_ID=view_events
+APPWRITE_SEARCH_EVENTS_COLLECTION_ID=search_events
+```
 
 ---
 
 ## API ML-сервера
 
-### GET /health
+### GET `/health`
 
 Перевірка доступності ML-сервера.
 
 Приклад відповіді:
 
-    {
-      "ok": true,
-      "service": "studdy-ml-server"
-    }
+```json
+{
+  "ok": true,
+  "service": "studdy-ml-server"
+}
+```
 
-### GET /quiz/health
+### GET `/quiz/health`
 
 Перевірка доступності модуля генерації тестів.
 
 Приклад відповіді:
 
-    {
-      "ok": true,
-      "module": "local_ml_quiz_generator"
-    }
+```json
+{
+  "ok": true,
+  "module": "local_ml_quiz_generator"
+}
+```
 
-### POST /quiz/generate
+### POST `/quiz/generate`
 
 Генерація тестових запитань за навчальним текстом.
 
 Приклад запиту:
 
-    {
-      "title": "Класифікація в машинному навчанні",
-      "text": "Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів. Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score.",
-      "questionCount": 5
-    }
+```json
+{
+  "title": "Класифікація в машинному навчанні",
+  "text": "Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів. Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score.",
+  "questionCount": 5
+}
+```
 
 Приклад відповіді:
 
+```json
+{
+  "title": "Класифікація в машинному навчанні",
+  "questions": [
     {
-      "title": "Класифікація в машинному навчанні",
-      "questions": [
-        {
-          "questionText": "Текст питання",
-          "optionA": "Варіант A",
-          "optionB": "Варіант B",
-          "optionC": "Варіант C",
-          "optionD": "Варіант D",
-          "correctOption": "A",
-          "explanation": "Пояснення правильної відповіді"
-        }
-      ]
+      "questionText": "Текст питання",
+      "optionA": "Варіант A",
+      "optionB": "Варіант B",
+      "optionC": "Варіант C",
+      "optionD": "Варіант D",
+      "correctOption": "A",
+      "explanation": "Пояснення правильної відповіді"
     }
+  ]
+}
+```
 
-### GET /debug-data
+### GET `/debug-data`
 
 Допоміжний endpoint для перевірки кількості матеріалів, подій користувачів і рядків датасету.
 
@@ -235,25 +261,33 @@
 
 ### Тестування генерації тестів
 
-    cd ml-server
-    python test_api_quiz.py
-    python test_multiple_quiz_topics.py
+```bash
+cd ml-server
+python test_api_quiz.py
+python test_multiple_quiz_topics.py
+```
 
 ### Тестування для 4 розділу
 
-    python chapter4_api_tests.py
-    python chapter4_quiz_quality_tests.py
+```bash
+python chapter4_api_tests.py
+python chapter4_quiz_quality_tests.py
+```
 
 ### Тестування для 5 розділу
 
-    python chapter5_model_evaluation_test.py
-    python chapter5_strong_evaluation_test.py
-    python chapter5_recommendation_evaluation.py
+```bash
+python chapter5_model_evaluation_test.py
+python chapter5_strong_evaluation_test.py
+python chapter5_recommendation_evaluation.py
+```
 
 ### Тестування для 6 розділу
 
-    python chapter6_fast_test_v2.py
-    python chapter6_make_response_chart.py
+```bash
+python chapter6_fast_test_v2.py
+python chapter6_make_response_chart.py
+```
 
 ---
 
@@ -317,9 +351,9 @@
 
 | Проблема | Причина | Рішення |
 |---|---|---|
-| Телефон не бачить ML-сервер | 127.0.0.1 на телефоні вказує на сам телефон | Використати IPv4-адресу ноутбука в локальній мережі |
-| No module named appwrite | Не встановлено Python SDK Appwrite | Виконати python -m pip install appwrite |
-| Помилка доступу до ML API | Сервер не запущено або неправильний порт | Запустити FastAPI на порту 6060 |
+| Телефон не бачить ML-сервер | `127.0.0.1` на телефоні вказує на сам телефон | Використати IPv4-адресу ноутбука в локальній мережі |
+| `No module named appwrite` | Не встановлено Python SDK Appwrite | Виконати `python -m pip install appwrite` |
+| Помилка доступу до ML API | Сервер не запущено або неправильний порт | Запустити FastAPI на порту `6060` |
 | Помилка 422 при генерації тесту | Передано порожній або занадто короткий текст | Надати текст довжиною не менше 80 символів |
 | Зображення або контент не відображається | Неправильний storage або collection ID | Перевірити налаштування Appwrite |
 | Низька якість генерації | Вхідний текст недостатньо інформативний | Використовувати повні навчальні абзаци |
@@ -342,4 +376,4 @@
 
 ## Примітка
 
-Проєкт розроблено як практичну частину бакалаврської роботи на тему “Розробка моделей машинного навчання для освітньої соціальної платформи з інтерактивними функціями”. Актуальна реалізація з ML-сервером, тестовими сценаріями та результатами експериментів розміщена у гілці dev.
+Проєкт розроблено як практичну частину бакалаврської роботи на тему “Розробка моделей машинного навчання для освітньої соціальної платформи з інтерактивними функціями”. Актуальна реалізація з ML-сервером, тестовими сценаріями та результатами експериментів розміщена у гілці `dev`.
