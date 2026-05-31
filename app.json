@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "studdy",
+    "scheme": "appwrite-callback-6a1ae727000328f56b72",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#161622"
       },
-      "package": "com.lnu.studdy"
+      "package": "com.studdy.app"
     },
     "web": {
       "bundler": "metro",

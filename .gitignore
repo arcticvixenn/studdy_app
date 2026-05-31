@@ -38,3 +38,6 @@ ml-server/.pytest_cache/
 
 # AI server local files
 ai-server/node_modules/
+*.bak.*
+__pycache__/
+*.pyc
