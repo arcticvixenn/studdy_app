@@ -1,50 +1,345 @@
-# Welcome to your Expo app 👋
+﻿# Studdy App — освітня соціальна платформа з ML-функціональністю
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Мобільний застосунок для роботи з навчальним контентом, персоналізованими рекомендаціями та автоматизованою генерацією тестових запитань на основі методів машинного навчання.
 
-## Get started
+---
 
-1. Install dependencies
+## Автор
 
-   ```bash
-   npm install
-   ```
+- **ПІБ**: Швалінська Валерія Василівна
+- **Спеціальність**: F3 — Комп’ютерні науки
+- **Тема бакалаврської роботи**: Розробка моделей машинного навчання для освітньої соціальної платформи з інтерактивними функціями
+- **Гілка репозиторію**: dev
+- **Дата виконання**: 2026
+- **Група**: вкажіть свою групу
+- **Керівник**: ас. Мисюк Р. В.
 
-2. Start the app
+---
 
-   ```bash
+## Загальна інформація
+
+- **Тип проєкту**: мобільний застосунок з окремим ML-сервером
+- **Клієнтська частина**: Expo, React Native, Expo Router
+- **Хмарна частина**: Appwrite
+- **ML-сервер**: Python, FastAPI
+- **Методи машинного навчання**: TF-IDF, cosine similarity, KMeans, Random Forest
+- **Репозиторій**: https://github.com/arcticvixenn/studdy_app.git
+- **Актуальна гілка**: dev
+
+Проєкт розроблено як практичну частину бакалаврської роботи. Основна ідея полягає у створенні освітньої соціальної платформи, де користувач може працювати з навчальними матеріалами, переглядати публікації, отримувати рекомендації та автоматично формувати тестові запитання на основі текстового матеріалу.
+
+---
+
+## Опис функціоналу
+
+Основний функціонал застосунку:
+
+- реєстрація та авторизація користувачів;
+- робота з профілем користувача;
+- перегляд освітньої стрічки;
+- робота з курсами, уроками та навчальними матеріалами;
+- пошук навчального контенту;
+- блок персоналізованих рекомендацій;
+- генерація тестових запитань на основі навчального тексту;
+- попередній перегляд сформованого тесту;
+- взаємодія мобільного застосунку з FastAPI ML-сервером;
+- експериментальне тестування ML-модулів;
+- збереження результатів експериментів у JSON, Markdown та PNG-файлах.
+
+---
+
+## Структура проєкту
+
+| Файл / папка | Призначення |
+|---|---|
+| app/ | Екрани мобільного застосунку та маршрути Expo Router |
+| app/(tabs)/ | Основні вкладки застосунку |
+| components/ | Повторно використовувані UI-компоненти |
+| constants/ | Константи застосунку |
+| context/ | Контекст користувача та стан застосунку |
+| hooks/ | Користувацькі React-хуки |
+| lib/ | Робота з Appwrite, рекомендаціями та допоміжною логікою |
+| ml-server/ | Окремий Python/FastAPI ML-сервер |
+| ml-server/server.py | Основний файл запуску FastAPI-сервера |
+| ml-server/src/ | ML-логіка генерації тестів і моделей |
+| ml-server/models/ | Збережені ML-моделі |
+| ml-server/chapter4_test_results/ | Результати тестування для експериментального розділу |
+| ml-server/chapter5_results/ | Результати оцінювання ефективності моделей |
+| ml-server/chapter6_results/ | Результати перевірки надійності API |
+| scripts/ | Допоміжні скрипти для перевірки й налаштування Appwrite |
+| assets/ | Зображення та ресурси застосунку |
+| package.json | Залежності та команди запуску Expo-застосунку |
+| app.json | Конфігурація Expo |
+
+---
+
+## Використані технології
+
+### Frontend
+
+- Expo
+- React Native
+- Expo Router
+- NativeWind / Tailwind CSS
+- React Navigation
+- Appwrite SDK
+
+### Backend / Cloud
+
+- Appwrite Cloud
+- Appwrite Database
+- Appwrite Storage
+- Appwrite Authentication
+
+### Machine Learning
+
+- Python
+- FastAPI
+- scikit-learn
+- pandas
+- NumPy
+- joblib
+- TF-IDF
+- cosine similarity
+- KMeans
+- Random Forest
+
+---
+
+## Як запустити проєкт з нуля
+
+### 1. Клонування репозиторію
+
+    git clone -b dev https://github.com/arcticvixenn/studdy_app.git
+    cd studdy_app
+
+### 2. Встановлення залежностей мобільного застосунку
+
+    npm install
+
+### 3. Запуск Expo-застосунку
+
     npx expo start
-   ```
 
-In the output, you'll find options to open the app in a
+Після запуску Expo застосунок можна відкрити через Expo Go на телефоні, Android Emulator або web-режим.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Запуск ML-сервера
 
-## Get a fresh project
+### 1. Перехід у папку ML-сервера
 
-When you're ready, run:
+    cd ml-server
 
-```bash
-npm run reset-project
-```
+### 2. Встановлення Python-залежностей
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+    python -m pip install -r requirements.txt
+    python -m pip install appwrite python-dotenv matplotlib
 
-## Learn more
+### 3. Запуск FastAPI-сервера
 
-To learn more about developing your project with Expo, look at the following resources:
+    python -m uvicorn server:app --host 0.0.0.0 --port 6060 --reload
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Локальна адреса сервера:
 
-## Join the community
+    http://127.0.0.1:6060
 
-Join our community of developers creating universal apps.
+Для тестування на фізичному телефоні потрібно використовувати IPv4-адресу ноутбука в локальній Wi-Fi мережі, наприклад:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+    http://192.168.1.104:6060
+
+---
+
+## Налаштування середовища
+
+Для роботи з Appwrite потрібно створити локальний .env файл. Реальні ключі Appwrite не можна публікувати в GitHub.
+
+Приклад структури .env для ml-server:
+
+    APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+    APPWRITE_PROJECT_ID=your_project_id
+    APPWRITE_API_KEY=your_api_key
+    APPWRITE_DATABASE_ID=your_database_id
+    APPWRITE_COURSES_COLLECTION_ID=courses
+    APPWRITE_LESSONS_COLLECTION_ID=lessons
+    APPWRITE_POSTS_COLLECTION_ID=posts
+    APPWRITE_QUIZ_ANSWERS_COLLECTION_ID=quiz_answers
+    APPWRITE_QUIZ_ATTEMPTS_COLLECTION_ID=quiz_attempts
+    APPWRITE_VIEW_EVENTS_COLLECTION_ID=view_events
+    APPWRITE_SEARCH_EVENTS_COLLECTION_ID=search_events
+
+---
+
+## API ML-сервера
+
+### GET /health
+
+Перевірка доступності ML-сервера.
+
+Приклад відповіді:
+
+    {
+      "ok": true,
+      "service": "studdy-ml-server"
+    }
+
+### GET /quiz/health
+
+Перевірка доступності модуля генерації тестів.
+
+Приклад відповіді:
+
+    {
+      "ok": true,
+      "module": "local_ml_quiz_generator"
+    }
+
+### POST /quiz/generate
+
+Генерація тестових запитань за навчальним текстом.
+
+Приклад запиту:
+
+    {
+      "title": "Класифікація в машинному навчанні",
+      "text": "Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів. Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score.",
+      "questionCount": 5
+    }
+
+Приклад відповіді:
+
+    {
+      "title": "Класифікація в машинному навчанні",
+      "questions": [
+        {
+          "questionText": "Текст питання",
+          "optionA": "Варіант A",
+          "optionB": "Варіант B",
+          "optionC": "Варіант C",
+          "optionD": "Варіант D",
+          "correctOption": "A",
+          "explanation": "Пояснення правильної відповіді"
+        }
+      ]
+    }
+
+### GET /debug-data
+
+Допоміжний endpoint для перевірки кількості матеріалів, подій користувачів і рядків датасету.
+
+---
+
+## Тестування
+
+У проєкті підготовлено окремі скрипти для тестування ML-модуля.
+
+### Тестування генерації тестів
+
+    cd ml-server
+    python test_api_quiz.py
+    python test_multiple_quiz_topics.py
+
+### Тестування для 4 розділу
+
+    python chapter4_api_tests.py
+    python chapter4_quiz_quality_tests.py
+
+### Тестування для 5 розділу
+
+    python chapter5_model_evaluation_test.py
+    python chapter5_strong_evaluation_test.py
+    python chapter5_recommendation_evaluation.py
+
+### Тестування для 6 розділу
+
+    python chapter6_fast_test_v2.py
+    python chapter6_make_response_chart.py
+
+---
+
+## Результати експериментів
+
+### Генерація тестових запитань
+
+У межах експериментального тестування було виконано 12 запусків генерації для 4 навчальних тем. Загалом сформовано 27 тестових питань. Усі питання мали повну структуру, валідну правильну відповідь і пояснення.
+
+### Рекомендаційна система
+
+Для оцінювання рекомендаційної системи було порівняно три підходи:
+
+| Підхід | Precision@3 | Recall@3 | HitRate@3 | NDCG@3 | MAP@3 |
+|---|---:|---:|---:|---:|---:|
+| Popularity baseline | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| Content-based TF-IDF | 0.2778 | 0.8333 | 0.8333 | 0.7718 | 0.75 |
+| Hybrid ML / Random Forest | 0.3333 | 1.0 | 1.0 | 1.0 | 1.0 |
+
+### Метрики моделей
+
+| Модель | Accuracy | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| Answer Selector | 0.907 | 1.0 | 0.3333 | 0.5 |
+| Answer Ranker | 0.9951 | 0.9778 | 0.9778 | 0.9778 |
+| Recommendation model | 0.91 | 0.893 | 0.913 | 0.903 |
+
+---
+
+## Інструкція для користувача
+
+1. Запустити Expo-застосунок.
+2. Увійти або зареєструватися.
+3. Перейти на головний екран.
+4. Переглянути навчальні матеріали й рекомендації.
+5. Відкрити урок або матеріал.
+6. Натиснути кнопку генерації тесту.
+7. Переглянути автоматично сформовані питання.
+8. За потреби повернутися до матеріалу або повторити генерацію.
+
+---
+
+## Приклади екранів
+
+У роботі використовуються такі демонстраційні екрани:
+
+- запуск Expo-застосунку;
+- запуск FastAPI ML-сервера;
+- головний екран застосунку;
+- блок “Рекомендовано для вас”;
+- сторінка уроку;
+- екран генерації тесту;
+- попередній перегляд сформованого тесту;
+- профіль користувача;
+- результати тестування API;
+- графіки ефективності ML-модулів.
+
+---
+
+## Проблеми і рішення
+
+| Проблема | Причина | Рішення |
+|---|---|---|
+| Телефон не бачить ML-сервер | 127.0.0.1 на телефоні вказує на сам телефон | Використати IPv4-адресу ноутбука в локальній мережі |
+| No module named appwrite | Не встановлено Python SDK Appwrite | Виконати python -m pip install appwrite |
+| Помилка доступу до ML API | Сервер не запущено або неправильний порт | Запустити FastAPI на порту 6060 |
+| Помилка 422 при генерації тесту | Передано порожній або занадто короткий текст | Надати текст довжиною не менше 80 символів |
+| Зображення або контент не відображається | Неправильний storage або collection ID | Перевірити налаштування Appwrite |
+| Низька якість генерації | Вхідний текст недостатньо інформативний | Використовувати повні навчальні абзаци |
+
+---
+
+## Використані джерела
+
+- React Native Documentation
+- Expo Documentation
+- FastAPI Documentation
+- Appwrite Documentation
+- scikit-learn Documentation
+- pandas Documentation
+- NumPy Documentation
+- Python Documentation
+- GitHub Documentation
+
+---
+
+## Примітка
+
+Проєкт розроблено як практичну частину бакалаврської роботи на тему “Розробка моделей машинного навчання для освітньої соціальної платформи з інтерактивними функціями”. Актуальна реалізація з ML-сервером, тестовими сценаріями та результатами експериментів розміщена у гілці dev.
