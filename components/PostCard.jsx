@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Platform,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import { router } from 'expo-router';
 
 import { icons } from '../constants';
 import { useGlobalContext } from '../context/GlobalProvider';
 import {
+  awardXp,
+  completeDailyQuestIfMatches,
   deletePost,
   getPostLikeState,
   togglePostLike,
@@ -37,26 +41,32 @@ const PostCard = ({ post, onDeleted }) => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const isOwner = post.authorId === user?.$id;
+  const isVideo = post.mediaType === 'video' && post.videoUrl;
+  const isShort = post.videoType === 'short';
 
   useEffect(() => {
     let isMounted = true;
 
     const loadStates = async () => {
-      const [likeState, actualCommentsCount, saveState] = await Promise.all([
-        getPostLikeState(post.$id, user?.$id),
-        getPostCommentsCount(post.$id),
-        getPostSaveState(post.$id, user?.$id),
-      ]);
+      if (!post?.$id) return;
 
-      if (isMounted) {
-        setLikesCount(likeState.likesCount);
-        setIsLiked(likeState.isLiked);
-        setLikeId(likeState.likeId);
+      try {
+        const [likeState, actualCommentsCount, saveState] = await Promise.all([
+          getPostLikeState(post.$id, user?.$id),
+          getPostCommentsCount(post.$id),
+          getPostSaveState(post.$id, user?.$id),
+        ]);
 
-        setCommentsCount(actualCommentsCount);
-
-        setIsSaved(saveState.isSaved);
-        setSaveId(saveState.saveId);
+        if (isMounted) {
+          setLikesCount(likeState.likesCount);
+          setIsLiked(likeState.isLiked);
+          setLikeId(likeState.likeId);
+          setCommentsCount(actualCommentsCount);
+          setIsSaved(saveState.isSaved);
+          setSaveId(saveState.saveId);
+        }
+      } catch (error) {
+        console.log('load post card state error:', error);
       }
     };
 
@@ -65,7 +75,7 @@ const PostCard = ({ post, onDeleted }) => {
     return () => {
       isMounted = false;
     };
-  }, [post.$id, user?.$id]);
+  }, [post?.$id, user?.$id]);
 
   const handleLike = async () => {
     if (!user?.$id || likeLoading) return;
@@ -73,6 +83,8 @@ const PostCard = ({ post, onDeleted }) => {
     setLikeLoading(true);
 
     try {
+      const wasLiked = isLiked;
+
       const nextState = await togglePostLike({
         postId: post.$id,
         user,
@@ -83,6 +95,22 @@ const PostCard = ({ post, onDeleted }) => {
       setLikesCount(nextState.likesCount);
       setIsLiked(nextState.isLiked);
       setLikeId(nextState.likeId);
+
+      if (!wasLiked && nextState.isLiked) {
+        try {
+          await awardXp({
+            userId: user.$id,
+            points: 10,
+            source: 'like',
+            sourceId: post.$id,
+            sourceType: 'post',
+            reason: 'Лайк навчального матеріалу',
+            topic: post.category || '',
+          });
+        } catch (xpError) {
+          console.log('like XP error:', xpError);
+        }
+      }
     } finally {
       setLikeLoading(false);
     }
@@ -94,6 +122,8 @@ const PostCard = ({ post, onDeleted }) => {
     setSaveLoading(true);
 
     try {
+      const wasSaved = isSaved;
+
       const nextState = await togglePostSave({
         postId: post.$id,
         user,
@@ -103,19 +133,50 @@ const PostCard = ({ post, onDeleted }) => {
 
       setIsSaved(nextState.isSaved);
       setSaveId(nextState.saveId);
+
+      if (!wasSaved && nextState.isSaved) {
+        try {
+          await awardXp({
+            userId: user.$id,
+            points: 20,
+            source: 'save',
+            sourceId: post.$id,
+            sourceType: 'post',
+            reason: 'Збереження корисного матеріалу',
+            topic: post.category || '',
+          });
+
+          await completeDailyQuestIfMatches(user.$id, 'save');
+        } catch (xpError) {
+          console.log('save XP error:', xpError);
+        }
+      }
     } finally {
       setSaveLoading(false);
     }
   };
 
+  const confirmDelete = () => {
+    if (Platform.OS === 'web') {
+      return window.confirm('Видалити публікацію?');
+    }
+
+    return new Promise((resolve) => {
+      Alert.alert(
+        'Видалити публікацію?',
+        'Цю дію не можна буде скасувати.',
+        [
+          { text: 'Скасувати', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Видалити', style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+  };
+
   const handleDelete = async () => {
     if (!isOwner || deleteLoading) return;
 
-    const confirmed =
-      Platform.OS === 'web'
-        ? window.confirm('Видалити публікацію?')
-        : true;
-
+    const confirmed = await confirmDelete();
     if (!confirmed) return;
 
     setDeleteLoading(true);
@@ -131,6 +192,8 @@ const PostCard = ({ post, onDeleted }) => {
 
       if (Platform.OS === 'web') {
         window.alert(error.message || 'Не вдалося видалити публікацію.');
+      } else {
+        Alert.alert('Помилка', error.message || 'Не вдалося видалити публікацію.');
       }
     } finally {
       setDeleteLoading(false);
@@ -145,6 +208,10 @@ const PostCard = ({ post, onDeleted }) => {
     }
   };
 
+  const openPost = () => {
+    router.push(`/post/${post.$id}`);
+  };
+
   return (
     <View className="bg-black-100 border border-black-200 rounded-2xl mx-4 mb-5 p-4">
       <TouchableOpacity
@@ -152,27 +219,32 @@ const PostCard = ({ post, onDeleted }) => {
         activeOpacity={0.8}
         className="flex-row items-center mb-4"
       >
-        <Image
-          source={{ uri: post.authorAvatar }}
-          className="w-11 h-11 rounded-xl mr-3"
-          resizeMode="cover"
-        />
+        {post.authorAvatar ? (
+          <Image
+            source={{ uri: post.authorAvatar }}
+            className="w-11 h-11 rounded-xl mr-3"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-11 h-11 rounded-xl mr-3 bg-secondary justify-center items-center">
+            <Text className="text-primary font-pbold">
+              {(post.authorName || 'S').slice(0, 1).toUpperCase()}
+            </Text>
+          </View>
+        )}
 
         <View className="flex-1">
           <Text className="text-white font-psemibold">
-            {post.authorName}
+            {post.authorName || 'Studdy User'}
           </Text>
 
           <Text className="text-gray-100 text-xs">
-            {post.category}
+            {post.category || 'Навчальний матеріал'}
           </Text>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => router.push(`/post/${post.$id}`)}
-      >
+      <TouchableOpacity activeOpacity={0.9} onPress={openPost}>
         <Text className="text-white text-lg font-psemibold mb-2">
           {post.title}
         </Text>
@@ -180,31 +252,51 @@ const PostCard = ({ post, onDeleted }) => {
         <Text className="text-gray-100 text-sm leading-5">
           {post.content}
         </Text>
+      </TouchableOpacity>
 
-        {post.mediaType === 'image' && post.imageUrl && (
+      {post.mediaType === 'image' && post.imageUrl && (
+        <TouchableOpacity activeOpacity={0.9} onPress={openPost}>
           <Image
             source={{ uri: post.imageUrl }}
             className="w-full h-52 rounded-2xl mt-4"
             resizeMode="cover"
           />
-        )}
+        </TouchableOpacity>
+      )}
 
-        {post.mediaType === 'video' && post.thumbnailUrl && (
-          <View className="relative mt-4">
-            <Image
-              source={{ uri: post.thumbnailUrl }}
-              className="w-full h-52 rounded-2xl"
-              resizeMode="cover"
-            />
+      {isVideo && (
+        <View
+          className="w-full rounded-2xl overflow-hidden bg-black-200 mt-4"
+          style={{ height: isShort ? 360 : 220 }}
+        >
+          <Video
+            source={{ uri: post.videoUrl }}
+            style={{ width: '100%', height: '100%' }}
+            useNativeControls
+            resizeMode={ResizeMode.CONTAIN}
+            shouldPlay={false}
+            isLooping={isShort}
+            posterSource={post.thumbnailUrl ? { uri: post.thumbnailUrl } : undefined}
+            usePoster={Boolean(post.thumbnailUrl)}
+          />
+        </View>
+      )}
 
-            <Image
-              source={icons.play}
-              className="w-14 h-14 absolute self-center top-[78px]"
-              resizeMode="contain"
-            />
-          </View>
-        )}
-      </TouchableOpacity>
+      {post.mediaType === 'video' && !post.videoUrl && post.thumbnailUrl && (
+        <TouchableOpacity activeOpacity={0.9} onPress={openPost} className="relative mt-4">
+          <Image
+            source={{ uri: post.thumbnailUrl }}
+            className="w-full h-52 rounded-2xl"
+            resizeMode="cover"
+          />
+
+          <Image
+            source={icons.play}
+            className="w-14 h-14 absolute self-center top-[78px]"
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      )}
 
       <View className="flex-row mt-4 pt-4 border-t border-black-200 items-center flex-wrap">
         <TouchableOpacity
@@ -230,7 +322,7 @@ const PostCard = ({ post, onDeleted }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.push(`/post/${post.$id}`)}
+          onPress={openPost}
           activeOpacity={0.8}
           className="flex-row items-center mr-6 mb-2"
         >
