@@ -1,0 +1,21 @@
+{
+  "datasetRows": 24,
+  "answerCandidateSamples": 169,
+  "positiveSamples": 25,
+  "negativeSamples": 144,
+  "answerSelector": {
+    "accuracy": 0.907,
+    "precision": 1.0,
+    "recall": 0.3333,
+    "f1": 0.5,
+    "testSamples": 43
+  },
+  "difficultyPredictor": {
+    "classes": [
+      1,
+      2,
+      3
+    ],
+    "trainingSamples": 24
+  }
+}

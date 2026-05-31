@@ -17,7 +17,6 @@ import EmptyState from '../../components/EmptyState';
 import PostCard from '../../components/PostCard';
 import InfoBox from '../../components/InfoBox';
 import {
-  completeDailyQuest,
   getDailyQuest,
   getFollowersCount,
   getFollowingCount,
@@ -32,20 +31,38 @@ import {
 import useAppwrite from '../../lib/useAppwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
-const ActivityCell = ({ item }) => {
-  const intensity =
-    item.points >= 150 ? 'bg-secondary' :
-    item.points >= 80 ? 'bg-orange-400' :
-    item.points >= 30 ? 'bg-yellow-300' :
-    item.points > 0 ? 'bg-yellow-100' :
-    'bg-black-200';
+const formatDateLabel = (dateKey) => {
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  if (dateKey === todayKey) return 'Сьогодні';
+
+  const parts = String(dateKey || '').split('-');
+  if (parts.length !== 3) return dateKey;
+
+  return `${parts[2]}.${parts[1]}`;
+};
+
+const ActivityRow = ({ item, maxPoints }) => {
+  const widthPercent = maxPoints > 0 ? Math.max(8, Math.round((item.points / maxPoints) * 100)) : 0;
 
   return (
-    <View className="items-center mb-3">
-      <View className={`w-7 h-7 rounded-lg ${intensity}`} />
-      <Text className="text-gray-100 text-[9px] mt-1">
-        {item.points}
-      </Text>
+    <View className="mb-3">
+      <View className="flex-row justify-between mb-1">
+        <Text className="text-gray-100 text-xs">
+          {formatDateLabel(item.dateKey)}
+        </Text>
+        <Text className="text-secondary text-xs font-psemibold">
+          {item.points} XP
+        </Text>
+      </View>
+
+      <View className="h-3 bg-black-200 rounded-full overflow-hidden">
+        <View
+          className="h-full bg-secondary rounded-full"
+          style={{ width: `${widthPercent}%` }}
+        />
+      </View>
     </View>
   );
 };
@@ -61,7 +78,6 @@ const Profile = () => {
   const [dailyQuest, setDailyQuest] = useState(null);
   const [activityCalendar, setActivityCalendar] = useState([]);
   const [smartAdvice, setSmartAdvice] = useState([]);
-  const [isQuestLoading, setIsQuestLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
 
   const {
@@ -80,7 +96,7 @@ const Profile = () => {
     return getSavedPosts(user.$id);
   });
 
-  const loadGamification = useCallback(async () => {
+  const loadProfileData = useCallback(async () => {
     if (!user?.$id) return;
 
     try {
@@ -88,7 +104,7 @@ const Profile = () => {
         await Promise.all([
           getOrCreateUserProgress(user.$id),
           getDailyQuest(user.$id),
-          getUserActivityCalendar(user.$id, 28),
+          getUserActivityCalendar(user.$id, 14),
           getSmartLearningAdvice(user.$id),
         ]);
 
@@ -97,7 +113,7 @@ const Profile = () => {
       setActivityCalendar(calendarResult);
       setSmartAdvice(adviceResult);
     } catch (error) {
-      console.log('load profile gamification error:', error);
+      console.log('load profile data error:', error);
     }
   }, [user?.$id]);
 
@@ -109,9 +125,9 @@ const Profile = () => {
       if (user?.$id) {
         getFollowersCount(user.$id).then(setFollowersCount);
         getFollowingCount(user.$id).then(setFollowingCount);
-        loadGamification();
+        loadProfileData();
       }
-    }, [user?.$id, loadGamification])
+    }, [user?.$id, loadProfileData])
   );
 
   const changeAvatar = async () => {
@@ -121,7 +137,7 @@ const Profile = () => {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permission.granted) {
-        Alert.alert('Помилка', 'Потрібен доступ до галереї для вибору аватарки.');
+        Alert.alert('Помилка', 'Потрібен доступ до галереї.');
         return;
       }
 
@@ -157,38 +173,13 @@ const Profile = () => {
     router.replace('/sign-in');
   };
 
-  const finishDailyQuest = async () => {
-    if (!user?.$id) return;
-
-    setIsQuestLoading(true);
-
-    try {
-      const result = await completeDailyQuest(user.$id);
-
-      setDailyQuest(result.quest);
-      setProgress(result.progress);
-
-      const calendarResult = await getUserActivityCalendar(user.$id, 28);
-      setActivityCalendar(calendarResult);
-
-      Alert.alert(
-        result.alreadyCompleted ? 'Квест уже виконано' : 'XP отримано',
-        result.alreadyCompleted
-          ? 'Сьогоднішній квест уже був зарахований.'
-          : `Ти отримала ${result.progress?.gainedXp || dailyQuest?.reward || 0} XP.`
-      );
-    } catch (error) {
-      Alert.alert('Помилка', error.message);
-    } finally {
-      setIsQuestLoading(false);
-    }
-  };
-
   const currentData = activeTab === 'posts' ? posts ?? [] : savedPosts ?? [];
 
   const progressPercent = progress?.progressPercent || 0;
   const xpInCurrentLevel = progress?.xpInCurrentLevel || 0;
   const xpForNextLevel = progress?.xpForNextLevel || 120;
+  const maxDayPoints = Math.max(...activityCalendar.map((item) => item.points), 0);
+  const totalPeriodXp = activityCalendar.reduce((sum, item) => sum + item.points, 0);
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -228,6 +219,7 @@ const Profile = () => {
                       {(user?.username || 'S').slice(0, 1).toUpperCase()}
                     </Text>
                   )}
+
                   <View className="absolute -bottom-2 -right-2 bg-secondary px-2 py-1 rounded-xl">
                     <Text className="text-primary text-[10px] font-pbold">
                       {avatarLoading ? '...' : 'EDIT'}
@@ -313,7 +305,7 @@ const Profile = () => {
                     {dailyQuest?.title || 'Завантаження...'}
                   </Text>
 
-                  <Text className="text-gray-100 mt-2">
+                  <Text className="text-gray-100 mt-2 leading-5">
                     {dailyQuest?.description || 'Готуємо завдання на сьогодні.'}
                   </Text>
 
@@ -324,14 +316,17 @@ const Profile = () => {
 
                 <View className="bg-primary px-3 py-2 rounded-xl">
                   <Text className="text-secondary font-pbold">
-                    {dailyQuest?.completed ? 'DONE' : 'NEW'}
+                    {dailyQuest?.completed ? 'DONE' : 'ACTIVE'}
                   </Text>
                 </View>
               </View>
 
               <TouchableOpacity
-                onPress={finishDailyQuest}
-                disabled={dailyQuest?.completed || isQuestLoading}
+                onPress={() => {
+                  if (dailyQuest?.completed) return;
+                  router.push(dailyQuest?.route || '/home');
+                }}
+                disabled={dailyQuest?.completed}
                 className={`mt-4 rounded-2xl py-4 items-center ${
                   dailyQuest?.completed ? 'bg-black-200' : 'bg-secondary'
                 }`}
@@ -342,33 +337,44 @@ const Profile = () => {
                   }`}
                 >
                   {dailyQuest?.completed
-                    ? 'Квест уже виконано'
-                    : isQuestLoading
-                    ? 'Нараховуємо XP...'
-                    : 'Зарахувати квест'}
+                    ? 'Квест виконано'
+                    : dailyQuest?.actionLabel || 'Перейти до дії'}
                 </Text>
               </TouchableOpacity>
+
+              <Text className="text-gray-100 text-xs mt-3 leading-4">
+                Квест не зараховується кнопкою. Він виконується автоматично після реальної дії:
+                пройти тест, зберегти пост або залишити коментар.
+              </Text>
             </View>
 
             <View className="bg-black-100 border border-black-200 rounded-[24px] p-5 mt-5">
-              <Text className="text-white text-xl font-pbold">
-                Календар активності
-              </Text>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-white text-xl font-pbold">
+                  Активність
+                </Text>
 
-              <Text className="text-gray-100 mt-2">
-                Скільки XP було зароблено за останні 28 днів.
-              </Text>
-
-              <View className="flex-row flex-wrap justify-between mt-5">
-                {activityCalendar.map((item) => (
-                  <ActivityCell key={item.dateKey} item={item} />
-                ))}
+                <Text className="text-secondary font-pbold">
+                  {totalPeriodXp} XP
+                </Text>
               </View>
+
+              <Text className="text-gray-100 mt-2 mb-4">
+                XP за останні 14 днів.
+              </Text>
+
+              {activityCalendar.map((item) => (
+                <ActivityRow
+                  key={item.dateKey}
+                  item={item}
+                  maxPoints={maxDayPoints}
+                />
+              ))}
             </View>
 
             <View className="bg-black-100 border border-black-200 rounded-[24px] p-5 mt-5">
               <Text className="text-white text-xl font-pbold">
-                Розумні поради для навчання
+                Розумні поради
               </Text>
 
               {smartAdvice.length ? (
@@ -387,8 +393,7 @@ const Profile = () => {
                 ))
               ) : (
                 <Text className="text-gray-100 mt-3">
-                  Пройди кілька тестів, і тут зʼявляться персональні поради:
-                  що повторити, де були помилки і який матеріал відкрити далі.
+                  Пройди кілька тестів, і тут зʼявляться поради: яку тему повторити і чому.
                 </Text>
               )}
             </View>
@@ -439,7 +444,7 @@ const Profile = () => {
             }
             subtitle={
               activeTab === 'posts'
-                ? 'Створи перший допис і почни формувати свою навчальну активність.'
+                ? 'Створи перший допис і почни формувати активність.'
                 : 'Натискай на закладку в постах, щоб зберігати корисні матеріали.'
             }
           />

@@ -1,0 +1,5 @@
+topic,status,elapsedMs,requestedQuestions,actualQuestions,sentenceCount,keywordCount,topicCount,qualityPercent,issues,resultFile
+Типи машинного навчання,CHECK,3224.89,5,5,7,20,2,98.18,short_question_text,chapter4_test_results\quiz_quality\1_типи_машинного_навчання.json
+Нейронні мережі,PASS,350.94,5,5,7,20,2,100.0,,chapter4_test_results\quiz_quality\2_нейроннi_мережi.json
+Рекомендаційні системи,PASS,807.52,5,5,7,20,2,100.0,,chapter4_test_results\quiz_quality\3_рекомендацiйнi_системи.json
+Метрики якості моделей,CHECK,445.19,5,5,7,20,2,98.18,short_question_text,chapter4_test_results\quiz_quality\4_метрики_якостi_моделей.json

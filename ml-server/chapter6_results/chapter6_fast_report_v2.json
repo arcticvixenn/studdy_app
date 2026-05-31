@@ -1,0 +1,426 @@
+{
+  "summary": {
+    "created_at": "2026-05-31 12:58:06",
+    "base_url": "http://127.0.0.1:6060",
+    "expected_passed": 8,
+    "total_tests": 9,
+    "http_success_count": 6,
+    "normal_text_questions": 3,
+    "long_text_questions": 3,
+    "bad_text_questions": 0,
+    "quiz_health_time_ms": 75.0,
+    "normal_generation_time_ms": 3957.94,
+    "long_generation_time_ms": 400.09,
+    "bad_generation_time_ms": 2.7
+  },
+  "tests": {
+    "quiz_health": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 75.0,
+      "data": {
+        "ok": true,
+        "module": "local_ml_quiz_generator",
+        "description": "Local ML/NLP quiz generation module based on educational text"
+      }
+    },
+    "root_health": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 15.59,
+      "data": {
+        "ok": true,
+        "service": "studdy-ml-server"
+      }
+    },
+    "debug_data_optional": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 294.28,
+      "data": {
+        "answers": 8,
+        "courses": 6,
+        "lessons": 18,
+        "posts": 11,
+        "viewEvents": 75,
+        "searchEvents": 3,
+        "usersWithProfiles": 1,
+        "contentItems": 6,
+        "datasetRows": 6,
+        "labelCounts": {
+          "0": 4,
+          "1": 2
+        }
+      }
+    },
+    "empty_payload": {
+      "ok": false,
+      "status": 422,
+      "time_ms": 2.44,
+      "error": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"title\"],\"msg\":\"Field required\",\"input\":{}},{\"type\":\"missing\",\"loc\":[\"body\",\"text\"],\"msg\":\"Field required\",\"input\":{}}]}"
+    },
+    "empty_text": {
+      "ok": false,
+      "status": 422,
+      "time_ms": 14.52,
+      "error": "{\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"title\"],\"msg\":\"String should have at least 2 characters\",\"input\":\"\",\"ctx\":{\"min_length\":2}},{\"type\":\"string_too_short\",\"loc\":[\"body\",\"text\"],\"msg\":\"String should have at least 80 characters\",\"input\":\"\",\"ctx\":{\"min_length\":80}}]}"
+    },
+    "short_text_generation": {
+      "ok": false,
+      "status": 422,
+      "time_ms": 2.16,
+      "error": "{\"detail\":[{\"type\":\"string_too_short\",\"loc\":[\"body\",\"text\"],\"msg\":\"String should have at least 80 characters\",\"input\":\"Машинне навчання — це метод аналізу даних.\",\"ctx\":{\"min_length\":80}}]}"
+    },
+    "bad_text_generation": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 2.7,
+      "data": {
+        "title": "Тест: Неінформативний текст",
+        "source": "local_ml_pipeline",
+        "error": "Недостатньо навчального тексту для генерації тесту.",
+        "questions": [],
+        "keywords": [],
+        "topics": []
+      }
+    },
+    "normal_text_generation": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 3957.94,
+      "data": {
+        "title": "Тест: Класифікація в машинному навчанні",
+        "source": "local_ml_pipeline",
+        "modelDescription": {
+          "textAnalysis": "TF-IDF keyword extraction",
+          "topicDetection": "KMeans clustering over TF-IDF sentence vectors",
+          "difficultyPrediction": "RandomForestClassifier over sentence features",
+          "questionGeneration": "ML-assisted extractive question generation"
+        },
+        "statistics": {
+          "sentenceCount": 3,
+          "keywordCount": 20,
+          "topicCount": 3,
+          "questionCount": 3
+        },
+        "keywords": [
+          {
+            "keyword": "навчання з учителем",
+            "score": 3.0
+          },
+          {
+            "keyword": "класифікація",
+            "score": 3.0
+          },
+          {
+            "keyword": "модель",
+            "score": 3.0
+          },
+          {
+            "keyword": "accuracy",
+            "score": 0.2294
+          },
+          {
+            "keyword": "accuracy precision",
+            "score": 0.2294
+          },
+          {
+            "keyword": "f1 score",
+            "score": 0.2294
+          },
+          {
+            "keyword": "precision",
+            "score": 0.2294
+          },
+          {
+            "keyword": "precision recall",
+            "score": 0.2294
+          },
+          {
+            "keyword": "recall",
+            "score": 0.2294
+          },
+          {
+            "keyword": "recall f1",
+            "score": 0.2294
+          },
+          {
+            "keyword": "score",
+            "score": 0.2294
+          },
+          {
+            "keyword": "використовують",
+            "score": 0.2294
+          },
+          {
+            "keyword": "використовують accuracy",
+            "score": 0.2294
+          },
+          {
+            "keyword": "класифікаційних",
+            "score": 0.2294
+          },
+          {
+            "keyword": "класифікаційних моделей",
+            "score": 0.2294
+          },
+          {
+            "keyword": "моделей",
+            "score": 0.2294
+          },
+          {
+            "keyword": "моделей використовують",
+            "score": 0.2294
+          },
+          {
+            "keyword": "оцінювання",
+            "score": 0.2294
+          },
+          {
+            "keyword": "оцінювання якості",
+            "score": 0.2294
+          },
+          {
+            "keyword": "якості",
+            "score": 0.2294
+          }
+        ],
+        "topics": [
+          {
+            "topicId": 0,
+            "title": "Тема 1",
+            "sentences": [
+              "Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score."
+            ]
+          },
+          {
+            "topicId": 1,
+            "title": "Тема 2",
+            "sentences": [
+              "У рекомендаційних системах такі моделі можуть застосовуватися для визначення релевантності навчального матеріалу для конкретного користувача."
+            ]
+          },
+          {
+            "topicId": 2,
+            "title": "Тема 3",
+            "sentences": [
+              "Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів."
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "questionText": "Яке ключове поняття згадується в твердженні: «Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score»?",
+            "optionA": "класифікація",
+            "optionB": "навчання з учителем",
+            "optionC": "модель",
+            "optionD": "використовують accuracy",
+            "correctOption": "D",
+            "explanation": "Правильна відповідь: «використовують accuracy», оскільки це випливає з навчального матеріалу: «Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score.».",
+            "topic": "Класифікація в машинному навчанні",
+            "difficulty": 1,
+            "questionOrder": 1,
+            "sourceSentence": "Для оцінювання якості класифікаційних моделей використовують accuracy, precision, recall та F1-score."
+          },
+          {
+            "questionText": "Яке ключове поняття згадується в твердженні: «Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів»?",
+            "optionA": "accuracy",
+            "optionB": "модель",
+            "optionC": "навчання з учителем",
+            "optionD": "класифікація",
+            "correctOption": "C",
+            "explanation": "Правильна відповідь: «навчання з учителем», оскільки це випливає з навчального матеріалу: «Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів.».",
+            "topic": "Класифікація в машинному навчанні",
+            "difficulty": 2,
+            "questionOrder": 2,
+            "sourceSentence": "Класифікація є задачею машинного навчання з учителем, у якій модель навчається відносити об'єкти до наперед визначених класів."
+          },
+          {
+            "questionText": "Яке ключове поняття згадується в твердженні: «У рекомендаційних системах такі моделі можуть застосовуватися для визначення релевантності навчального матеріалу для конкретного користувача»?",
+            "optionA": "навчання з учителем",
+            "optionB": "модель",
+            "optionC": "класифікація",
+            "optionD": "рекомендаційних системах",
+            "correctOption": "D",
+            "explanation": "Правильна відповідь: «рекомендаційних системах», оскільки це випливає з навчального матеріалу: «У рекомендаційних системах такі моделі можуть застосовуватися для визначення релевантності навчального матеріалу для конкретного користувача.».",
+            "topic": "Класифікація в машинному навчанні",
+            "difficulty": 1,
+            "questionOrder": 3,
+            "sourceSentence": "У рекомендаційних системах такі моделі можуть застосовуватися для визначення релевантності навчального матеріалу для конкретного користувача."
+          }
+        ],
+        "error": null
+      }
+    },
+    "long_text_generation": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 400.09,
+      "data": {
+        "title": "Тест: Рекомендаційні системи",
+        "source": "local_ml_pipeline",
+        "modelDescription": {
+          "textAnalysis": "TF-IDF keyword extraction",
+          "topicDetection": "KMeans clustering over TF-IDF sentence vectors",
+          "difficultyPrediction": "RandomForestClassifier over sentence features",
+          "questionGeneration": "ML-assisted extractive question generation"
+        },
+        "statistics": {
+          "sentenceCount": 5,
+          "keywordCount": 20,
+          "topicCount": 3,
+          "questionCount": 3
+        },
+        "keywords": [
+          {
+            "keyword": "кластеризація",
+            "score": 3.0
+          },
+          {
+            "keyword": "модель",
+            "score": 3.0
+          },
+          {
+            "keyword": "користувача",
+            "score": 0.3561
+          },
+          {
+            "keyword": "контентні",
+            "score": 0.2477
+          },
+          {
+            "keyword": "контентні ознаки",
+            "score": 0.2477
+          },
+          {
+            "keyword": "ознаки",
+            "score": 0.2477
+          },
+          {
+            "keyword": "ознаки поведінкові",
+            "score": 0.2477
+          },
+          {
+            "keyword": "поведінкові",
+            "score": 0.2477
+          },
+          {
+            "keyword": "поєднати",
+            "score": 0.2477
+          },
+          {
+            "keyword": "поєднати контентні",
+            "score": 0.2477
+          },
+          {
+            "keyword": "підхід",
+            "score": 0.2477
+          },
+          {
+            "keyword": "такий",
+            "score": 0.2477
+          },
+          {
+            "keyword": "такий підхід",
+            "score": 0.2477
+          },
+          {
+            "keyword": "близькість",
+            "score": 0.2316
+          },
+          {
+            "keyword": "близькість матеріалами",
+            "score": 0.2316
+          },
+          {
+            "keyword": "змістову",
+            "score": 0.2316
+          },
+          {
+            "keyword": "змістову близькість",
+            "score": 0.2316
+          },
+          {
+            "keyword": "косинусна",
+            "score": 0.2316
+          },
+          {
+            "keyword": "косинусна міра",
+            "score": 0.2316
+          },
+          {
+            "keyword": "матеріалами",
+            "score": 0.2316
+          }
+        ],
+        "topics": [
+          {
+            "topicId": 0,
+            "title": "Тема 1",
+            "sentences": [
+              "Для аналізу текстового контенту застосовується TF-IDF-векторизація, яка перетворює навчальні матеріали на числові вектори.",
+              "Після цього косинусна міра схожості дозволяє оцінити змістову близькість між матеріалами.",
+              "Такий підхід дозволяє поєднати контентні ознаки та поведінкові дані користувача."
+            ]
+          },
+          {
+            "topicId": 1,
+            "title": "Тема 2",
+            "sentences": [
+              "Рекомендаційна система в освітній платформі використовується для добору навчальних матеріалів відповідно до інтересів користувача та його попередньої активності."
+            ]
+          },
+          {
+            "topicId": 2,
+            "title": "Тема 3",
+            "sentences": [
+              "Кластеризація KMeans може використовуватися для групування тем, а модель Random Forest — для оцінювання релевантності матеріалу."
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "questionText": "Яке ключове поняття згадується в твердженні: «Такий підхід дозволяє поєднати контентні ознаки та поведінкові дані користувача»?",
+            "optionA": "кластеризація",
+            "optionB": "модель",
+            "optionC": "поєднати контентні",
+            "optionD": "користувача",
+            "correctOption": "C",
+            "explanation": "Правильна відповідь: «поєднати контентні», оскільки це випливає з навчального матеріалу: «Такий підхід дозволяє поєднати контентні ознаки та поведінкові дані користувача.».",
+            "topic": "Рекомендаційні системи",
+            "difficulty": 1,
+            "questionOrder": 1,
+            "sourceSentence": "Такий підхід дозволяє поєднати контентні ознаки та поведінкові дані користувача."
+          },
+          {
+            "questionText": "Яке ключове поняття згадується в твердженні: «Після цього косинусна міра схожості дозволяє оцінити змістову близькість між матеріалами»?",
+            "optionA": "кластеризація",
+            "optionB": "модель",
+            "optionC": "користувача",
+            "optionD": "змістову близькість",
+            "correctOption": "D",
+            "explanation": "Правильна відповідь: «змістову близькість», оскільки це випливає з навчального матеріалу: «Після цього косинусна міра схожості дозволяє оцінити змістову близькість між матеріалами.».",
+            "topic": "Рекомендаційні системи",
+            "difficulty": 1,
+            "questionOrder": 2,
+            "sourceSentence": "Після цього косинусна міра схожості дозволяє оцінити змістову близькість між матеріалами."
+          },
+          {
+            "questionText": "Яке ключове поняття згадується в твердженні: «Для аналізу текстового контенту застосовується TF-IDF-векторизація, яка перетворює навчальні матеріали на числові вектори»?",
+            "optionA": "кластеризація",
+            "optionB": "користувача",
+            "optionC": "модель",
+            "optionD": "аналізу текстового",
+            "correctOption": "D",
+            "explanation": "Правильна відповідь: «аналізу текстового», оскільки це випливає з навчального матеріалу: «Для аналізу текстового контенту застосовується TF-IDF-векторизація, яка перетворює навчальні матеріали на числові вектори.».",
+            "topic": "Рекомендаційні системи",
+            "difficulty": 1,
+            "questionOrder": 3,
+            "sourceSentence": "Для аналізу текстового контенту застосовується TF-IDF-векторизація, яка перетворює навчальні матеріали на числові вектори."
+          }
+        ],
+        "error": null
+      }
+    }
+  }
+}

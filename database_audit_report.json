@@ -1,0 +1,1659 @@
+{
+  "checkedAt": "2026-05-31T01:41:24.832Z",
+  "databaseId": "studdy_db",
+  "summary": {
+    "expectedCollections": 17,
+    "existingCollections": 17,
+    "missingCollections": [],
+    "criticalProblems": 0,
+    "optionalWarnings": 0,
+    "pendingProblems": 0
+  },
+  "collections": {
+    "users": {
+      "collectionId": "users",
+      "name": "Users",
+      "status": "OK",
+      "documents": 1,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "username",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "email",
+          "type": "string",
+          "required": true,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "avatar",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "usernameLower",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "accountId_idx",
+          "type": "key",
+          "attributes": [
+            "accountId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "usernameLower_unique",
+          "type": "unique",
+          "attributes": [
+            "usernameLower"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "posts": {
+      "collectionId": "posts",
+      "name": "Posts",
+      "status": "OK",
+      "documents": 11,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "title",
+          "type": "string",
+          "required": true,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "required": false,
+          "size": 5000,
+          "status": "available"
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "required": false,
+          "size": 2000,
+          "status": "available"
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "mediaType",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        },
+        {
+          "key": "isShort",
+          "type": "boolean",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "imageUrl",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "imageId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "videoUrl",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "videoId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "thumbnailUrl",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "thumbnailId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorName",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorAvatar",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "videoType",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "likesCount",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "commentsCount",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "authorId_idx",
+          "type": "key",
+          "attributes": [
+            "authorId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "mediaType_idx",
+          "type": "key",
+          "attributes": [
+            "mediaType"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "isShort_idx",
+          "type": "key",
+          "attributes": [
+            "isShort"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "category_idx",
+          "type": "key",
+          "attributes": [
+            "category"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "courses": {
+      "collectionId": "courses",
+      "name": "Courses",
+      "status": "OK",
+      "documents": 6,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "title",
+          "type": "string",
+          "required": false,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "required": false,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "required": false,
+          "size": 3000,
+          "status": "available"
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorName",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "imageUrl",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "thumbnailUrl",
+          "type": "string",
+          "required": false,
+          "size": 2048,
+          "status": "available"
+        },
+        {
+          "key": "thumbnailId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "difficulty",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "authorId_idx",
+          "type": "key",
+          "attributes": [
+            "authorId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "lessons": {
+      "collectionId": "lessons",
+      "name": "Lessons",
+      "status": "OK",
+      "documents": 18,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "courseId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "required": true,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "required": false,
+          "size": 3000,
+          "status": "available"
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "required": false,
+          "size": 10000,
+          "status": "available"
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "lessonOrder",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "videoId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "thumbnailId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "order",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "videoUrl",
+          "type": "string",
+          "required": false,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "thumbnailUrl",
+          "type": "string",
+          "required": false,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "difficulty",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "courseId_idx",
+          "type": "key",
+          "attributes": [
+            "courseId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "authorId_idx",
+          "type": "key",
+          "attributes": [
+            "authorId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "quizzes": {
+      "collectionId": "quizzes",
+      "name": "Quizzes",
+      "status": "OK",
+      "documents": 6,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "lessonId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "required": true,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "modelType",
+          "type": "string",
+          "required": false,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "questionCount",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "courseId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "difficulty",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "lessonId_idx",
+          "type": "key",
+          "attributes": [
+            "lessonId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "questions": {
+      "collectionId": "questions",
+      "name": "Questions",
+      "status": "OK",
+      "documents": 10,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "quizId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "questionText",
+          "type": "string",
+          "required": true,
+          "size": 3000,
+          "status": "available"
+        },
+        {
+          "key": "optionA",
+          "type": "string",
+          "required": true,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "optionB",
+          "type": "string",
+          "required": true,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "optionC",
+          "type": "string",
+          "required": true,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "optionD",
+          "type": "string",
+          "required": true,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "correctOption",
+          "type": "string",
+          "required": true,
+          "size": 8,
+          "status": "available"
+        },
+        {
+          "key": "explanation",
+          "type": "string",
+          "required": false,
+          "size": 3000,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "difficulty",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "questionOrder",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "lessonId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "courseId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "correctAnswer",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "order",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "quizId_idx",
+          "type": "key",
+          "attributes": [
+            "quizId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "answers": {
+      "collectionId": "answers",
+      "name": "Answers",
+      "status": "OK",
+      "documents": 0,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "quizId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "questionId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "selectedOption",
+          "type": "string",
+          "required": false,
+          "size": 8,
+          "status": "available"
+        },
+        {
+          "key": "correctOption",
+          "type": "string",
+          "required": false,
+          "size": 8,
+          "status": "available"
+        },
+        {
+          "key": "isCorrect",
+          "type": "boolean",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "difficulty",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "score",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "quizId_idx",
+          "type": "key",
+          "attributes": [
+            "quizId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "topic_idx",
+          "type": "key",
+          "attributes": [
+            "topic"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "likes": {
+      "collectionId": "likes",
+      "name": "Likes",
+      "status": "OK",
+      "documents": 2,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "postId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "postId_idx",
+          "type": "key",
+          "attributes": [
+            "postId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "comments": {
+      "collectionId": "comments",
+      "name": "Comments",
+      "status": "OK",
+      "documents": 0,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "postId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorName",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "text",
+          "type": "string",
+          "required": false,
+          "size": 3000,
+          "status": "available"
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "required": false,
+          "size": 3000,
+          "status": "available"
+        },
+        {
+          "key": "userId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "authorAvatar",
+          "type": "string",
+          "required": false,
+          "size": 1000,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "postId_idx",
+          "type": "key",
+          "attributes": [
+            "postId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "authorId_idx",
+          "type": "key",
+          "attributes": [
+            "authorId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "saves": {
+      "collectionId": "saves",
+      "name": "Saves",
+      "status": "OK",
+      "documents": 0,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "postId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "postId_idx",
+          "type": "key",
+          "attributes": [
+            "postId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "follows": {
+      "collectionId": "follows",
+      "name": "Follows",
+      "status": "OK",
+      "documents": 0,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "followerId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "followingId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "userId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "targetUserId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "followerId_idx",
+          "type": "key",
+          "attributes": [
+            "followerId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "followingId_idx",
+          "type": "key",
+          "attributes": [
+            "followingId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "view_events": {
+      "collectionId": "view_events",
+      "name": "View Events",
+      "status": "OK",
+      "documents": 27,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "contentId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "contentType",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "duration",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "sourceId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "sourceType",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "postId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "lessonId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "courseId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "dateKey",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "contentId_idx",
+          "type": "key",
+          "attributes": [
+            "contentId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "search_events": {
+      "collectionId": "search_events",
+      "name": "Search Events",
+      "status": "OK",
+      "documents": 3,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "permissionUserId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "query",
+          "type": "string",
+          "required": true,
+          "size": 512,
+          "status": "available"
+        },
+        {
+          "key": "resultCount",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "resultsCount",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "dateKey",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "user_progress": {
+      "collectionId": "user_progress",
+      "name": "User Progress",
+      "status": "OK",
+      "documents": 2,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "xpTotal",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "level",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "streak",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "lastActiveDate",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "dailyQuestDate",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "dailyQuestCompleted",
+          "type": "boolean",
+          "required": false,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "xp_events": {
+      "collectionId": "xp_events",
+      "name": "XP Events",
+      "status": "OK",
+      "documents": 2,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "points",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "sourceId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "sourceType",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "reason",
+          "type": "string",
+          "required": false,
+          "size": 512,
+          "status": "available"
+        },
+        {
+          "key": "dateKey",
+          "type": "string",
+          "required": true,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "dateKey_idx",
+          "type": "key",
+          "attributes": [
+            "dateKey"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "source_idx",
+          "type": "key",
+          "attributes": [
+            "source"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "sourceId_idx",
+          "type": "key",
+          "attributes": [
+            "sourceId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "quiz_attempts": {
+      "collectionId": "quiz_attempts",
+      "name": "Quiz Attempts",
+      "status": "OK",
+      "documents": 0,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "quizId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "lessonId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "courseId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "quizTitle",
+          "type": "string",
+          "required": false,
+          "size": 255,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "totalQuestions",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "correctCount",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "scorePercent",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "score",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "correctAnswers",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "total",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "percentage",
+          "type": "integer",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "completedAt",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "quizId_idx",
+          "type": "key",
+          "attributes": [
+            "quizId"
+          ],
+          "status": "available"
+        }
+      ]
+    },
+    "quiz_answers": {
+      "collectionId": "quiz_answers",
+      "name": "Quiz Answers",
+      "status": "OK",
+      "documents": 0,
+      "missingCritical": [],
+      "missingOptional": [],
+      "pendingAttributes": [],
+      "attributes": [
+        {
+          "key": "userId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "accountId",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "quizId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "questionId",
+          "type": "string",
+          "required": true,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "questionText",
+          "type": "string",
+          "required": false,
+          "size": 512,
+          "status": "available"
+        },
+        {
+          "key": "selectedOption",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "correctOption",
+          "type": "string",
+          "required": false,
+          "size": 32,
+          "status": "available"
+        },
+        {
+          "key": "isCorrect",
+          "type": "boolean",
+          "required": false,
+          "status": "available"
+        },
+        {
+          "key": "topic",
+          "type": "string",
+          "required": false,
+          "size": 128,
+          "status": "available"
+        },
+        {
+          "key": "selectedAnswer",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        },
+        {
+          "key": "correctAnswer",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        },
+        {
+          "key": "answer",
+          "type": "string",
+          "required": false,
+          "size": 64,
+          "status": "available"
+        },
+        {
+          "key": "explanation",
+          "type": "string",
+          "required": false,
+          "size": 1000,
+          "status": "available"
+        },
+        {
+          "key": "correct",
+          "type": "boolean",
+          "required": false,
+          "status": "available"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "userId_idx",
+          "type": "key",
+          "attributes": [
+            "userId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "quizId_idx",
+          "type": "key",
+          "attributes": [
+            "quizId"
+          ],
+          "status": "available"
+        },
+        {
+          "key": "questionId_idx",
+          "type": "key",
+          "attributes": [
+            "questionId"
+          ],
+          "status": "available"
+        }
+      ]
+    }
+  }
+}

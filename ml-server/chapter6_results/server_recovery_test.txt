@@ -1,0 +1,9 @@
+﻿ML-сервер доступний за основною адресою http://127.0.0.1:6060/quiz/health.
+Відповідь сервера:
+
+  ok module                  description                                                  
+  -- ------                  -----------                                                  
+True local_ml_quiz_generator Local ML/NLP quiz generation module based on educational text
+
+
+

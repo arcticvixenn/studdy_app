@@ -1,0 +1,72 @@
+﻿{
+    "trained":  true,
+    "modelType":  "RandomForestClassifier",
+    "samples":  3006,
+    "realSamples":  6,
+    "syntheticUsed":  true,
+    "syntheticSamples":  3000,
+    "users":  1,
+    "contentItems":  6,
+    "viewEvents":  65,
+    "searchEvents":  3,
+    "metrics":  {
+                    "accuracy":  0.91,
+                    "precision":  0.893,
+                    "recall":  0.913,
+                    "f1":  0.903
+                },
+    "featureImportances":  [
+                               {
+                                   "feature":  "similarityToWeakTopics",
+                                   "importance":  0.5346
+                               },
+                               {
+                                   "feature":  "similarityToKnownTopics",
+                                   "importance":  0.1674
+                               },
+                               {
+                                   "feature":  "userAccuracy",
+                                   "importance":  0.0638
+                               },
+                               {
+                                   "feature":  "textLength",
+                                   "importance":  0.0457
+                               },
+                               {
+                                   "feature":  "popularity",
+                                   "importance":  0.0456
+                               },
+                               {
+                                   "feature":  "weakTopicsCount",
+                                   "importance":  0.0421
+                               },
+                               {
+                                   "feature":  "userAvgDifficulty",
+                                   "importance":  0.0405
+                               },
+                               {
+                                   "feature":  "userAnswersCount",
+                                   "importance":  0.0384
+                               },
+                               {
+                                   "feature":  "contentTypeValue",
+                                   "importance":  0.0103
+                               },
+                               {
+                                   "feature":  "mediaTypeValue",
+                                   "importance":  0.0103
+                               },
+                               {
+                                   "feature":  "similarityToSearchHistory",
+                                   "importance":  0.0008
+                               },
+                               {
+                                   "feature":  "searchMatchScore",
+                                   "importance":  0.0006
+                               },
+                               {
+                                   "feature":  "viewCount",
+                                   "importance":  0.0
+                               }
+                           ]
+}

@@ -1,0 +1,510 @@
+{
+  "created_at": "2026-05-31 13:44:23",
+  "dataset": {
+    "contentItems": 12,
+    "users": 6,
+    "interactions": 30,
+    "trainInteractions": 24,
+    "testInteractions": 6,
+    "topics": [
+      "machine_learning",
+      "metrics",
+      "neural_networks",
+      "recommendations"
+    ]
+  },
+  "classifierMetrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "samples": 42,
+    "positiveSamples": 21,
+    "negativeSamples": 21
+  },
+  "methodSummaries": [
+    {
+      "method": "popularity",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "hit_rate_at_3": 0.0,
+      "ndcg_at_3": 0.0,
+      "map_at_3": 0.0
+    },
+    {
+      "method": "content_based",
+      "precision_at_3": 0.2778,
+      "recall_at_3": 0.8333,
+      "hit_rate_at_3": 0.8333,
+      "ndcg_at_3": 0.7718,
+      "map_at_3": 0.75
+    },
+    {
+      "method": "hybrid_ml",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "hit_rate_at_3": 1.0,
+      "ndcg_at_3": 1.0,
+      "map_at_3": 1.0
+    }
+  ],
+  "methodDetails": {
+    "popularity": [
+      {
+        "userId": "u1",
+        "recommended": [
+          {
+            "itemId": "rec_1",
+            "score": 0.8
+          },
+          {
+            "itemId": "rec_2",
+            "score": 0.6
+          },
+          {
+            "itemId": "nn_2",
+            "score": 0.4
+          }
+        ],
+        "relevant": [
+          "ml_6"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      },
+      {
+        "userId": "u2",
+        "recommended": [
+          {
+            "itemId": "ml_1",
+            "score": 1.0
+          },
+          {
+            "itemId": "ml_2",
+            "score": 0.8
+          },
+          {
+            "itemId": "ml_3",
+            "score": 0.8
+          }
+        ],
+        "relevant": [
+          "nn_3"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      },
+      {
+        "userId": "u3",
+        "recommended": [
+          {
+            "itemId": "ml_5",
+            "score": 0.8
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.6
+          },
+          {
+            "itemId": "nn_1",
+            "score": 0.6
+          }
+        ],
+        "relevant": [
+          "rec_3"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      },
+      {
+        "userId": "u4",
+        "recommended": [
+          {
+            "itemId": "ml_1",
+            "score": 1.0
+          },
+          {
+            "itemId": "ml_2",
+            "score": 0.8
+          },
+          {
+            "itemId": "ml_3",
+            "score": 0.8
+          }
+        ],
+        "relevant": [
+          "ml_6"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      },
+      {
+        "userId": "u5",
+        "recommended": [
+          {
+            "itemId": "ml_1",
+            "score": 1.0
+          },
+          {
+            "itemId": "ml_2",
+            "score": 0.8
+          },
+          {
+            "itemId": "ml_3",
+            "score": 0.8
+          }
+        ],
+        "relevant": [
+          "rec_3"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      },
+      {
+        "userId": "u6",
+        "recommended": [
+          {
+            "itemId": "ml_5",
+            "score": 0.8
+          },
+          {
+            "itemId": "rec_1",
+            "score": 0.8
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.6
+          }
+        ],
+        "relevant": [
+          "nn_3"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      }
+    ],
+    "content_based": [
+      {
+        "userId": "u1",
+        "recommended": [
+          {
+            "itemId": "ml_6",
+            "score": 0.16822464471037263
+          },
+          {
+            "itemId": "rec_3",
+            "score": 0.11833863096660607
+          },
+          {
+            "itemId": "rec_2",
+            "score": 0.03850321897770713
+          }
+        ],
+        "relevant": [
+          "ml_6"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u2",
+        "recommended": [
+          {
+            "itemId": "rec_3",
+            "score": 0.06507975057820167
+          },
+          {
+            "itemId": "nn_3",
+            "score": 0.04360112877578949
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.01580220598004704
+          }
+        ],
+        "relevant": [
+          "nn_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 0.6309297535714575,
+        "map_at_3": 0.5
+      },
+      {
+        "userId": "u3",
+        "recommended": [
+          {
+            "itemId": "rec_3",
+            "score": 0.1941117485113946
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.029206284349886903
+          },
+          {
+            "itemId": "ml_6",
+            "score": 0.02810953481940824
+          }
+        ],
+        "relevant": [
+          "rec_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u4",
+        "recommended": [
+          {
+            "itemId": "ml_6",
+            "score": 0.23464651620874794
+          },
+          {
+            "itemId": "ml_3",
+            "score": 0.056848075690835734
+          },
+          {
+            "itemId": "nn_1",
+            "score": 0.01547738383814151
+          }
+        ],
+        "relevant": [
+          "ml_6"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u5",
+        "recommended": [
+          {
+            "itemId": "rec_3",
+            "score": 0.14250141725940263
+          },
+          {
+            "itemId": "ml_3",
+            "score": 0.0651423891349015
+          },
+          {
+            "itemId": "ml_1",
+            "score": 0.030178226058133396
+          }
+        ],
+        "relevant": [
+          "rec_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u6",
+        "recommended": [
+          {
+            "itemId": "ml_4",
+            "score": 0.039659286228650704
+          },
+          {
+            "itemId": "rec_2",
+            "score": 0.039214362197753025
+          },
+          {
+            "itemId": "ml_6",
+            "score": 0.038170007310822186
+          }
+        ],
+        "relevant": [
+          "nn_3"
+        ],
+        "precision_at_3": 0.0,
+        "recall_at_3": 0.0,
+        "hit_rate_at_3": 0.0,
+        "ndcg_at_3": 0.0,
+        "map_at_3": 0.0
+      }
+    ],
+    "hybrid_ml": [
+      {
+        "userId": "u1",
+        "recommended": [
+          {
+            "itemId": "ml_6",
+            "score": 0.39
+          },
+          {
+            "itemId": "nn_2",
+            "score": 0.01
+          },
+          {
+            "itemId": "rec_2",
+            "score": 0.01
+          }
+        ],
+        "relevant": [
+          "ml_6"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u2",
+        "recommended": [
+          {
+            "itemId": "nn_3",
+            "score": 0.4
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.01
+          },
+          {
+            "itemId": "rec_2",
+            "score": 0.01
+          }
+        ],
+        "relevant": [
+          "nn_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u3",
+        "recommended": [
+          {
+            "itemId": "rec_3",
+            "score": 0.39
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.01
+          },
+          {
+            "itemId": "nn_1",
+            "score": 0.01
+          }
+        ],
+        "relevant": [
+          "rec_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u4",
+        "recommended": [
+          {
+            "itemId": "ml_6",
+            "score": 0.4
+          },
+          {
+            "itemId": "nn_1",
+            "score": 0.01
+          },
+          {
+            "itemId": "nn_2",
+            "score": 0.01
+          }
+        ],
+        "relevant": [
+          "ml_6"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u5",
+        "recommended": [
+          {
+            "itemId": "rec_3",
+            "score": 0.39
+          },
+          {
+            "itemId": "ml_1",
+            "score": 0.01
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.01
+          }
+        ],
+        "relevant": [
+          "rec_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      },
+      {
+        "userId": "u6",
+        "recommended": [
+          {
+            "itemId": "nn_3",
+            "score": 0.4
+          },
+          {
+            "itemId": "ml_4",
+            "score": 0.01
+          },
+          {
+            "itemId": "rec_2",
+            "score": 0.01
+          }
+        ],
+        "relevant": [
+          "nn_3"
+        ],
+        "precision_at_3": 0.3333333333333333,
+        "recall_at_3": 1.0,
+        "hit_rate_at_3": 1.0,
+        "ndcg_at_3": 1.0,
+        "map_at_3": 1.0
+      }
+    ]
+  },
+  "chart": "chapter5_results\\chapter5_recommendation_methods_comparison.png"
+}

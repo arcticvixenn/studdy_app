@@ -23,6 +23,9 @@ const categories = [
   'Аналіз даних',
   'Англійська мова',
   'Самоорганізація',
+  'Машинне навчання',
+  'Рекомендації',
+  'Адаптивне навчання',
 ];
 
 const types = [
@@ -31,6 +34,23 @@ const types = [
   { key: 'video', label: 'Велике відео' },
   { key: 'short_video', label: 'Shorts' },
 ];
+
+const MB = 1024 * 1024;
+
+// Appwrite bucket у нас локально стабільно тримаємо до ~30MB.
+// Long video робимо більшим, shorts — меншим.
+const LONG_VIDEO_MAX_SIZE = 28 * MB;
+const SHORT_VIDEO_MAX_SIZE = 12 * MB;
+const IMAGE_MAX_SIZE = 8 * MB;
+
+const formatSize = (bytes = 0) => {
+  if (!bytes) return 'невідомий розмір';
+  return `${(bytes / MB).toFixed(1)} MB`;
+};
+
+const getAssetSize = (asset) => {
+  return asset?.size || asset?.fileSize || asset?.file?.size || 0;
+};
 
 const Create = () => {
   const { user } = useGlobalContext();
@@ -46,17 +66,38 @@ const Create = () => {
     thumbnail: null,
   });
 
+  const resetMedia = (mediaType) => {
+    setForm((prev) => ({
+      ...prev,
+      mediaType,
+      image: null,
+      video: null,
+      thumbnail: null,
+    }));
+  };
+
   const pickImage = async (field) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.85,
       });
 
       if (!result.canceled) {
+        const asset = result.assets[0];
+        const size = getAssetSize(asset);
+
+        if (size > IMAGE_MAX_SIZE) {
+          Alert.alert(
+            'Зображення завелике',
+            `Максимальний розмір фото: ${formatSize(IMAGE_MAX_SIZE)}. Обране фото: ${formatSize(size)}.`
+          );
+          return;
+        }
+
         setForm((prev) => ({
           ...prev,
-          [field]: result.assets[0],
+          [field]: asset,
         }));
       }
     } catch (error) {
@@ -79,6 +120,20 @@ const Create = () => {
           ...asset,
           file: asset.file || result.output?.[0] || null,
         };
+
+        const size = getAssetSize(normalizedVideo);
+        const isShort = form.mediaType === 'short_video';
+        const maxSize = isShort ? SHORT_VIDEO_MAX_SIZE : LONG_VIDEO_MAX_SIZE;
+
+        if (size > maxSize) {
+          Alert.alert(
+            isShort ? 'Shorts завеликий' : 'Відео завелике',
+            isShort
+              ? `Для Shorts максимум ${formatSize(maxSize)}. Обране відео: ${formatSize(size)}.`
+              : `Для великого відео максимум ${formatSize(maxSize)}. Обране відео: ${formatSize(size)}.`
+          );
+          return;
+        }
 
         setForm((prev) => ({
           ...prev,
@@ -108,10 +163,32 @@ const Create = () => {
       return Alert.alert('Помилка', 'Додай коротке відео.');
     }
 
+    const videoSize = getAssetSize(form.video);
+
+    if (form.mediaType === 'video' && videoSize > LONG_VIDEO_MAX_SIZE) {
+      return Alert.alert(
+        'Відео завелике',
+        `Максимум для великого відео: ${formatSize(LONG_VIDEO_MAX_SIZE)}.`
+      );
+    }
+
+    if (form.mediaType === 'short_video' && videoSize > SHORT_VIDEO_MAX_SIZE) {
+      return Alert.alert(
+        'Shorts завеликий',
+        `Максимум для Shorts: ${formatSize(SHORT_VIDEO_MAX_SIZE)}.`
+      );
+    }
+
     setPublishing(true);
 
     try {
-      await createPost({ ...form, user });
+      await createPost({
+        ...form,
+        user,
+        // для БД зберігаємо як video, а різницю передаємо через videoType
+        mediaType: form.mediaType === 'short_video' ? 'video' : form.mediaType,
+        videoType: form.mediaType === 'short_video' ? 'short' : form.mediaType === 'video' ? 'long' : '',
+      });
 
       Alert.alert('Готово', 'Публікацію створено.');
 
@@ -141,17 +218,14 @@ const Create = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView
         className="px-4 pt-6"
-        contentContainerStyle={{
-          paddingBottom: 36,
-        }}
+        contentContainerStyle={{ paddingBottom: 36 }}
       >
         <Text className="text-3xl text-white font-psemibold">
           Створити
         </Text>
 
         <Text className="text-gray-100 text-sm mt-2 mb-6">
-          Створи текстову публікацію, фото, велике відео для головної стрічки
-          або коротке відео для Shorts.
+          Створи текстову публікацію, фото, велике відео або Shorts.
         </Text>
 
         <TouchableOpacity
@@ -174,8 +248,8 @@ const Create = () => {
           </Text>
 
           <Text className="text-gray-100 text-sm leading-5">
-            Великі відео з обкладинкою з’являються у головній стрічці.
-            Shorts відкриваються окремо у вкладці “Відео”.
+            Велике відео: до {formatSize(LONG_VIDEO_MAX_SIZE)} з обкладинкою.
+            Shorts: до {formatSize(SHORT_VIDEO_MAX_SIZE)}, без обкладинки.
           </Text>
         </View>
 
@@ -183,15 +257,7 @@ const Create = () => {
           {types.map((type) => (
             <TouchableOpacity
               key={type.key}
-              onPress={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  mediaType: type.key,
-                  image: null,
-                  video: null,
-                  thumbnail: null,
-                }))
-              }
+              onPress={() => resetMedia(type.key)}
               className={`mr-3 mb-3 px-4 py-3 rounded-full border ${
                 form.mediaType === type.key
                   ? 'bg-secondary border-secondary'
@@ -217,7 +283,7 @@ const Create = () => {
           placeholder={
             form.mediaType === 'short_video'
               ? 'Наприклад: Що таке кластеризація за 30 секунд'
-              : 'Наприклад: Як працює backpropagation'
+              : 'Наприклад: Як працює рекомендаційна модель'
           }
           handleChangeText={(value) =>
             setForm((prev) => ({ ...prev, title: value }))
@@ -245,9 +311,7 @@ const Create = () => {
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
-              onPress={() =>
-                setForm((prev) => ({ ...prev, category }))
-              }
+              onPress={() => setForm((prev) => ({ ...prev, category }))}
               className={`mr-2 mb-3 px-4 py-3 rounded-full border ${
                 form.category === category
                   ? 'bg-secondary border-secondary'
@@ -273,7 +337,7 @@ const Create = () => {
             className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
           >
             <Text className="text-white font-pmedium">
-              {form.image ? 'Зображення обрано ✓' : 'Обрати зображення'}
+              {form.image ? `Зображення обрано ✓ ${formatSize(getAssetSize(form.image))}` : 'Обрати зображення'}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -282,18 +346,22 @@ const Create = () => {
           <>
             <TouchableOpacity
               onPress={pickVideo}
-              className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-4"
+              className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-4 px-4"
             >
-              <Text className="text-white font-pmedium">
-                {form.video ? 'Відео обрано ✓' : 'Обрати велике відео'}
+              <Text className="text-white font-pmedium text-center">
+                {form.video ? `Відео обрано ✓ ${formatSize(getAssetSize(form.video))}` : 'Обрати велике відео'}
+              </Text>
+
+              <Text className="text-gray-100 text-xs mt-2 text-center">
+                Максимум: {formatSize(LONG_VIDEO_MAX_SIZE)}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => pickImage('thumbnail')}
-              className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6"
+              className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6 px-4"
             >
-              <Text className="text-white font-pmedium">
+              <Text className="text-white font-pmedium text-center">
                 {form.thumbnail ? 'Обкладинку обрано ✓' : 'Обрати обкладинку для головної стрічки'}
               </Text>
             </TouchableOpacity>
@@ -306,11 +374,11 @@ const Create = () => {
             className="h-28 bg-black-100 border border-black-200 rounded-2xl justify-center items-center mb-6 px-4"
           >
             <Text className="text-white font-pmedium text-center">
-              {form.video ? 'Коротке відео обрано ✓' : 'Обрати коротке відео'}
+              {form.video ? `Shorts обрано ✓ ${formatSize(getAssetSize(form.video))}` : 'Обрати коротке відео'}
             </Text>
 
             <Text className="text-gray-100 text-xs mt-2 text-center">
-              Обкладинка не потрібна — відео відкриватиметься напряму у Shorts.
+              Максимум: {formatSize(SHORT_VIDEO_MAX_SIZE)}. Обкладинка не потрібна.
             </Text>
           </TouchableOpacity>
         ) : null}

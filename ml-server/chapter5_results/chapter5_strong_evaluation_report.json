@@ -1,0 +1,548 @@
+{
+  "created_at": "2026-05-31 13:39:07",
+  "base_url": "http://127.0.0.1:6060",
+  "repeat_count": 3,
+  "health": {
+    "quiz_health": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 65.84,
+      "data": {
+        "ok": true,
+        "module": "local_ml_quiz_generator",
+        "description": "Local ML/NLP quiz generation module based on educational text"
+      }
+    },
+    "root_health": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 23.25,
+      "data": {
+        "ok": true,
+        "service": "studdy-ml-server"
+      }
+    },
+    "debug_data": {
+      "ok": true,
+      "status": 200,
+      "time_ms": 217.15,
+      "data": {
+        "answers": 0,
+        "courses": 0,
+        "lessons": 0,
+        "posts": 0,
+        "viewEvents": 0,
+        "searchEvents": 0,
+        "usersWithProfiles": 0,
+        "contentItems": 0,
+        "datasetRows": 0,
+        "labelCounts": {}
+      }
+    }
+  },
+  "topic_summary": [
+    {
+      "title": "Типи машинного навчання",
+      "success_runs": 3,
+      "total_runs": 3,
+      "avg_time_ms": 311.47,
+      "min_time_ms": 203.38,
+      "max_time_ms": 508.77,
+      "avg_question_count": 2,
+      "min_question_count": 2,
+      "max_question_count": 2,
+      "avg_complete_percent": 100.0
+    },
+    {
+      "title": "Нейронні мережі",
+      "success_runs": 3,
+      "total_runs": 3,
+      "avg_time_ms": 222.29,
+      "min_time_ms": 192.08,
+      "max_time_ms": 280.97,
+      "avg_question_count": 2,
+      "min_question_count": 2,
+      "max_question_count": 2,
+      "avg_complete_percent": 100.0
+    },
+    {
+      "title": "Рекомендаційні системи",
+      "success_runs": 3,
+      "total_runs": 3,
+      "avg_time_ms": 225.7,
+      "min_time_ms": 156.01,
+      "max_time_ms": 268.85,
+      "avg_question_count": 2,
+      "min_question_count": 2,
+      "max_question_count": 2,
+      "avg_complete_percent": 100.0
+    },
+    {
+      "title": "Метрики якості моделей",
+      "success_runs": 3,
+      "total_runs": 3,
+      "avg_time_ms": 196.03,
+      "min_time_ms": 193.29,
+      "max_time_ms": 199.75,
+      "avg_question_count": 3,
+      "min_question_count": 3,
+      "max_question_count": 3,
+      "avg_complete_percent": 100.0
+    }
+  ],
+  "all_runs": [
+    {
+      "topic": "Типи машинного навчання",
+      "run": 1,
+      "ok": true,
+      "status": 200,
+      "time_ms": 508.77,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням»?",
+        "optionA": "навчання з учителем",
+        "optionB": "машинне навчання",
+        "optionC": "модель",
+        "optionD": "навчання без учителя",
+        "correctOption": "D",
+        "explanation": "Правильна відповідь: «навчання без учителя», оскільки це випливає з навчального матеріалу: «Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням.».",
+        "topic": "Типи машинного навчання",
+        "difficulty": 2,
+        "questionOrder": 1,
+        "sourceSentence": "Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням."
+      },
+      "error": null
+    },
+    {
+      "topic": "Типи машинного навчання",
+      "run": 2,
+      "ok": true,
+      "status": 200,
+      "time_ms": 222.27,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням»?",
+        "optionA": "машинне навчання",
+        "optionB": "модель",
+        "optionC": "навчання з учителем",
+        "optionD": "навчання без учителя",
+        "correctOption": "D",
+        "explanation": "Правильна відповідь: «навчання без учителя», оскільки це випливає з навчального матеріалу: «Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням.».",
+        "topic": "Типи машинного навчання",
+        "difficulty": 2,
+        "questionOrder": 1,
+        "sourceSentence": "Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням."
+      },
+      "error": null
+    },
+    {
+      "topic": "Типи машинного навчання",
+      "run": 3,
+      "ok": true,
+      "status": 200,
+      "time_ms": 203.38,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням»?",
+        "optionA": "машинне навчання",
+        "optionB": "навчання з учителем",
+        "optionC": "модель",
+        "optionD": "навчання без учителя",
+        "correctOption": "D",
+        "explanation": "Правильна відповідь: «навчання без учителя», оскільки це випливає з навчального матеріалу: «Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням.».",
+        "topic": "Типи машинного навчання",
+        "difficulty": 2,
+        "questionOrder": 1,
+        "sourceSentence": "Машинне навчання поділяється на навчання з учителем, навчання без учителя та навчання з підкріпленням."
+      },
+      "error": null
+    },
+    {
+      "topic": "Нейронні мережі",
+      "run": 1,
+      "ok": true,
+      "status": 200,
+      "time_ms": 193.82,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат»?",
+        "optionA": "вагових",
+        "optionB": "нейронна мережа",
+        "optionC": "вихідний результат",
+        "optionD": "коефіцієнтів",
+        "correctOption": "C",
+        "explanation": "Правильна відповідь: «вихідний результат», оскільки це випливає з навчального матеріалу: «Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат.».",
+        "topic": "Нейронні мережі",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат."
+      },
+      "error": null
+    },
+    {
+      "topic": "Нейронні мережі",
+      "run": 2,
+      "ok": true,
+      "status": 200,
+      "time_ms": 192.08,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат»?",
+        "optionA": "вихідний результат",
+        "optionB": "вагових",
+        "optionC": "нейронна мережа",
+        "optionD": "коефіцієнтів",
+        "correctOption": "A",
+        "explanation": "Правильна відповідь: «вихідний результат», оскільки це випливає з навчального матеріалу: «Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат.».",
+        "topic": "Нейронні мережі",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат."
+      },
+      "error": null
+    },
+    {
+      "topic": "Нейронні мережі",
+      "run": 3,
+      "ok": true,
+      "status": 200,
+      "time_ms": 280.97,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат»?",
+        "optionA": "вагових",
+        "optionB": "нейронна мережа",
+        "optionC": "коефіцієнтів",
+        "optionD": "вихідний результат",
+        "correctOption": "D",
+        "explanation": "Правильна відповідь: «вихідний результат», оскільки це випливає з навчального матеріалу: «Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат.».",
+        "topic": "Нейронні мережі",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Нейронна мережа складається з шарів штучних нейронів, які обробляють вхідні ознаки та формують вихідний результат."
+      },
+      "error": null
+    },
+    {
+      "topic": "Рекомендаційні системи",
+      "run": 1,
+      "ok": true,
+      "status": 200,
+      "time_ms": 252.25,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві»?",
+        "optionA": "корисними",
+        "optionB": "використовуються добору",
+        "optionC": "конкретному користувачеві",
+        "optionD": "добору матеріалів",
+        "correctOption": "C",
+        "explanation": "Правильна відповідь: «конкретному користувачеві», оскільки це випливає з навчального матеріалу: «Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві.».",
+        "topic": "Рекомендаційні системи",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві."
+      },
+      "error": null
+    },
+    {
+      "topic": "Рекомендаційні системи",
+      "run": 2,
+      "ok": true,
+      "status": 200,
+      "time_ms": 268.85,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві»?",
+        "optionA": "конкретному користувачеві",
+        "optionB": "використовуються добору",
+        "optionC": "корисними",
+        "optionD": "добору матеріалів",
+        "correctOption": "A",
+        "explanation": "Правильна відповідь: «конкретному користувачеві», оскільки це випливає з навчального матеріалу: «Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві.».",
+        "topic": "Рекомендаційні системи",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві."
+      },
+      "error": null
+    },
+    {
+      "topic": "Рекомендаційні системи",
+      "run": 3,
+      "ok": true,
+      "status": 200,
+      "time_ms": 156.01,
+      "question_count": 2,
+      "complete_count": 2,
+      "unique_options_count": 2,
+      "valid_correct_option_count": 2,
+      "with_explanation_count": 2,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві»?",
+        "optionA": "використовуються добору",
+        "optionB": "корисними",
+        "optionC": "добору матеріалів",
+        "optionD": "конкретному користувачеві",
+        "correctOption": "D",
+        "explanation": "Правильна відповідь: «конкретному користувачеві», оскільки це випливає з навчального матеріалу: «Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві.».",
+        "topic": "Рекомендаційні системи",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Рекомендаційні системи використовуються для добору матеріалів, які можуть бути корисними конкретному користувачеві."
+      },
+      "error": null
+    },
+    {
+      "topic": "Метрики якості моделей",
+      "run": 1,
+      "ok": true,
+      "status": 200,
+      "time_ms": 195.04,
+      "question_count": 3,
+      "complete_count": 3,
+      "unique_options_count": 3,
+      "valid_correct_option_count": 3,
+      "with_explanation_count": 3,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Accuracy показує загальну частку правильних прогнозів»?",
+        "optionA": "позитивних",
+        "optionB": "частку",
+        "optionC": "модель",
+        "optionD": "правильних прогнозів",
+        "correctOption": "D",
+        "explanation": "Правильна відповідь: «правильних прогнозів», оскільки це випливає з навчального матеріалу: «Accuracy показує загальну частку правильних прогнозів.».",
+        "topic": "Метрики якості моделей",
+        "difficulty": 2,
+        "questionOrder": 1,
+        "sourceSentence": "Accuracy показує загальну частку правильних прогнозів."
+      },
+      "error": null
+    },
+    {
+      "topic": "Метрики якості моделей",
+      "run": 2,
+      "ok": true,
+      "status": 200,
+      "time_ms": 199.75,
+      "question_count": 3,
+      "complete_count": 3,
+      "unique_options_count": 3,
+      "valid_correct_option_count": 3,
+      "with_explanation_count": 3,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Accuracy показує загальну частку правильних прогнозів»?",
+        "optionA": "правильних прогнозів",
+        "optionB": "позитивних",
+        "optionC": "частку",
+        "optionD": "модель",
+        "correctOption": "A",
+        "explanation": "Правильна відповідь: «правильних прогнозів», оскільки це випливає з навчального матеріалу: «Accuracy показує загальну частку правильних прогнозів.».",
+        "topic": "Метрики якості моделей",
+        "difficulty": 2,
+        "questionOrder": 1,
+        "sourceSentence": "Accuracy показує загальну частку правильних прогнозів."
+      },
+      "error": null
+    },
+    {
+      "topic": "Метрики якості моделей",
+      "run": 3,
+      "ok": true,
+      "status": 200,
+      "time_ms": 193.29,
+      "question_count": 3,
+      "complete_count": 3,
+      "unique_options_count": 3,
+      "valid_correct_option_count": 3,
+      "with_explanation_count": 3,
+      "complete_percent": 100.0,
+      "first_question": {
+        "questionText": "Яке ключове поняття згадується в твердженні: «Accuracy показує загальну частку правильних прогнозів»?",
+        "optionA": "частку",
+        "optionB": "правильних прогнозів",
+        "optionC": "модель",
+        "optionD": "позитивних",
+        "correctOption": "B",
+        "explanation": "Правильна відповідь: «правильних прогнозів», оскільки це випливає з навчального матеріалу: «Accuracy показує загальну частку правильних прогнозів.».",
+        "topic": "Метрики якості моделей",
+        "difficulty": 2,
+        "questionOrder": 1,
+        "sourceSentence": "Accuracy показує загальну частку правильних прогнозів."
+      },
+      "error": null
+    }
+  ],
+  "metric_files": [
+    {
+      "file": "chapter4_test_results\\api_test_summary.json",
+      "metrics": {
+        "results[2].response.metrics.accuracy": 0.91,
+        "results[2].response.metrics.precision": 0.893,
+        "results[2].response.metrics.recall": 0.913,
+        "results[2].response.metrics.f1": 0.903
+      }
+    },
+    {
+      "file": "chapter4_test_results\\chapter4_final_report_data.json",
+      "metrics": {
+        "recommendationTrain.metrics.accuracy": 0.91,
+        "recommendationTrain.metrics.precision": 0.893,
+        "recommendationTrain.metrics.recall": 0.913,
+        "recommendationTrain.metrics.f1": 0.903,
+        "strongQuizModelMetrics.answerRanker.accuracy": 0.9951,
+        "strongQuizModelMetrics.answerRanker.precision": 0.9778,
+        "strongQuizModelMetrics.answerRanker.recall": 0.9778,
+        "strongQuizModelMetrics.answerRanker.f1": 0.9778,
+        "strongQuizExample.modelMetrics.answerRanker.accuracy": 0.9951,
+        "strongQuizExample.modelMetrics.answerRanker.precision": 0.9778,
+        "strongQuizExample.modelMetrics.answerRanker.recall": 0.9778,
+        "strongQuizExample.modelMetrics.answerRanker.f1": 0.9778,
+        "apiTestSummary.results[2].response.metrics.accuracy": 0.91,
+        "apiTestSummary.results[2].response.metrics.precision": 0.893,
+        "apiTestSummary.results[2].response.metrics.recall": 0.913,
+        "apiTestSummary.results[2].response.metrics.f1": 0.903
+      }
+    },
+    {
+      "file": "chapter4_test_results\\generate_ml_result.json",
+      "metrics": {
+        "modelMetrics.answerSelector.accuracy": 0.907,
+        "modelMetrics.answerSelector.precision": 1.0,
+        "modelMetrics.answerSelector.recall": 0.3333,
+        "modelMetrics.answerSelector.f1": 0.5
+      }
+    },
+    {
+      "file": "chapter4_test_results\\generate_strong_result.json",
+      "metrics": {
+        "modelMetrics.answerRanker.accuracy": 0.9951,
+        "modelMetrics.answerRanker.precision": 0.9778,
+        "modelMetrics.answerRanker.recall": 0.9778,
+        "modelMetrics.answerRanker.f1": 0.9778
+      }
+    },
+    {
+      "file": "chapter4_test_results\\question_answer_model_metrics.json",
+      "metrics": {
+        "answerSelector.accuracy": 0.907,
+        "answerSelector.precision": 1.0,
+        "answerSelector.recall": 0.3333,
+        "answerSelector.f1": 0.5
+      }
+    },
+    {
+      "file": "chapter4_test_results\\strong_quiz_model_metrics.json",
+      "metrics": {
+        "answerRanker.accuracy": 0.9951,
+        "answerRanker.precision": 0.9778,
+        "answerRanker.recall": 0.9778,
+        "answerRanker.f1": 0.9778
+      }
+    },
+    {
+      "file": "models\\training_report.json",
+      "metrics": {
+        "accuracy": 0.6939
+      }
+    },
+    {
+      "file": "chapter4_test_results\\quiz_quality\\1_типи_машинного_навчання.json",
+      "metrics": {
+        "modelMetrics.answerRanker.accuracy": 0.9951,
+        "modelMetrics.answerRanker.precision": 0.9778,
+        "modelMetrics.answerRanker.recall": 0.9778,
+        "modelMetrics.answerRanker.f1": 0.9778
+      }
+    },
+    {
+      "file": "chapter4_test_results\\quiz_quality\\2_нейроннi_мережi.json",
+      "metrics": {
+        "modelMetrics.answerRanker.accuracy": 0.9951,
+        "modelMetrics.answerRanker.precision": 0.9778,
+        "modelMetrics.answerRanker.recall": 0.9778,
+        "modelMetrics.answerRanker.f1": 0.9778
+      }
+    },
+    {
+      "file": "chapter4_test_results\\quiz_quality\\3_рекомендацiйнi_системи.json",
+      "metrics": {
+        "modelMetrics.answerRanker.accuracy": 0.9951,
+        "modelMetrics.answerRanker.precision": 0.9778,
+        "modelMetrics.answerRanker.recall": 0.9778,
+        "modelMetrics.answerRanker.f1": 0.9778
+      }
+    },
+    {
+      "file": "chapter4_test_results\\quiz_quality\\4_метрики_якостi_моделей.json",
+      "metrics": {
+        "modelMetrics.answerRanker.accuracy": 0.9951,
+        "modelMetrics.answerRanker.precision": 0.9778,
+        "modelMetrics.answerRanker.recall": 0.9778,
+        "modelMetrics.answerRanker.f1": 0.9778
+      }
+    }
+  ],
+  "charts": [
+    "chapter5_results\\chapter5_avg_generation_time.png",
+    "chapter5_results\\chapter5_avg_questions.png",
+    "chapter5_results\\chapter5_question_structure_quality.png",
+    "chapter5_results\\chapter5_model_metrics_detected.png"
+  ],
+  "summary": {
+    "successful_runs": 12,
+    "total_runs": 12,
+    "success_rate_percent": 100.0,
+    "total_questions": 27,
+    "complete_questions": 27,
+    "complete_questions_percent": 100.0,
+    "valid_correct_options": 27,
+    "with_explanations": 27,
+    "metric_files_with_metrics": 11,
+    "datasetRows": 0,
+    "labelCounts": {}
+  }
+}

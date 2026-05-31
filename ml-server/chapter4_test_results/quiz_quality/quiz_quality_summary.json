@@ -1,0 +1,54 @@
+[
+  {
+    "topic": "Типи машинного навчання",
+    "status": "CHECK",
+    "elapsedMs": 3224.89,
+    "requestedQuestions": 5,
+    "actualQuestions": 5,
+    "sentenceCount": 7,
+    "keywordCount": 20,
+    "topicCount": 2,
+    "qualityPercent": 98.18,
+    "issues": "short_question_text",
+    "resultFile": "chapter4_test_results\\quiz_quality\\1_типи_машинного_навчання.json"
+  },
+  {
+    "topic": "Нейронні мережі",
+    "status": "PASS",
+    "elapsedMs": 350.94,
+    "requestedQuestions": 5,
+    "actualQuestions": 5,
+    "sentenceCount": 7,
+    "keywordCount": 20,
+    "topicCount": 2,
+    "qualityPercent": 100.0,
+    "issues": "",
+    "resultFile": "chapter4_test_results\\quiz_quality\\2_нейроннi_мережi.json"
+  },
+  {
+    "topic": "Рекомендаційні системи",
+    "status": "PASS",
+    "elapsedMs": 807.52,
+    "requestedQuestions": 5,
+    "actualQuestions": 5,
+    "sentenceCount": 7,
+    "keywordCount": 20,
+    "topicCount": 2,
+    "qualityPercent": 100.0,
+    "issues": "",
+    "resultFile": "chapter4_test_results\\quiz_quality\\3_рекомендацiйнi_системи.json"
+  },
+  {
+    "topic": "Метрики якості моделей",
+    "status": "CHECK",
+    "elapsedMs": 445.19,
+    "requestedQuestions": 5,
+    "actualQuestions": 5,
+    "sentenceCount": 7,
+    "keywordCount": 20,
+    "topicCount": 2,
+    "qualityPercent": 98.18,
+    "issues": "short_question_text",
+    "resultFile": "chapter4_test_results\\quiz_quality\\4_метрики_якостi_моделей.json"
+  }
+]

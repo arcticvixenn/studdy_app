@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,15 +10,18 @@ const Videos = () => {
   const { data: videos } = useAppwrite(getVideoPosts);
   const { height } = useWindowDimensions();
 
-  const itemHeight = height - 110;
-
+  const itemHeight = Math.max(height - 110, 520);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const shorts = (videos || []).filter((item) => {
+    return item?.mediaType === 'video' && item?.videoUrl;
+  });
+
   useEffect(() => {
-    if (videos?.length) {
+    if (shorts.length) {
       setActiveIndex(0);
     }
-  }, [videos]);
+  }, [shorts.length]);
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
@@ -31,14 +34,15 @@ const Videos = () => {
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 70,
+    itemVisiblePercentThreshold: 65,
+    minimumViewTime: 250,
   }).current;
 
   return (
     <SafeAreaView className="bg-black h-full">
-      {videos?.length ? (
+      {shorts.length ? (
         <FlatList
-          data={videos}
+          data={shorts}
           keyExtractor={(item) => item.$id}
           renderItem={({ item, index }) => (
             <VideoFeedItem
@@ -54,10 +58,10 @@ const Videos = () => {
           showsVerticalScrollIndicator={false}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
-          initialNumToRender={1}
+          initialNumToRender={2}
           maxToRenderPerBatch={2}
-          windowSize={3}
-          removeClippedSubviews
+          windowSize={5}
+          removeClippedSubviews={false}
           getItemLayout={(_, index) => ({
             length: itemHeight,
             offset: itemHeight * index,
@@ -71,7 +75,7 @@ const Videos = () => {
           </Text>
 
           <Text className="text-gray-100 text-center mt-3">
-            Створи першу навчальну відеопублікацію.
+            Створи першу навчальну відеопублікацію або Shorts.
           </Text>
         </View>
       )}

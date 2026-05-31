@@ -41,3 +41,22 @@ ai-server/node_modules/
 *.bak.*
 __pycache__/
 *.pyc
+
+# Local debug / temporary backup files
+*.log
+submit_quiz_attempt_debug.txt
+lib/*.BROKEN_*.js
+lib/appwrite_backup*.js
+
+# Python cache and local environments
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.venv/
+ml-server/.venv/
+
+# Environment files
+.env
+.env.*
+!.env.example

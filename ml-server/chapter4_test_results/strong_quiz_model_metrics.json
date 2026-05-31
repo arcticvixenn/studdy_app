@@ -1,0 +1,21 @@
+{
+  "datasetRows": 180,
+  "pairSamples": 1620,
+  "positiveSamples": 180,
+  "negativeSamples": 1440,
+  "answerRanker": {
+    "accuracy": 0.9951,
+    "precision": 0.9778,
+    "recall": 0.9778,
+    "f1": 0.9778,
+    "testSamples": 405
+  },
+  "difficultyPredictor": {
+    "classes": [
+      1,
+      2,
+      3
+    ],
+    "trainingSamples": 180
+  }
+}

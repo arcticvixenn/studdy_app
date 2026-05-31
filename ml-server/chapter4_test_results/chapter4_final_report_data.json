@@ -1,0 +1,496 @@
+{
+  "debugData": {
+    "answers": 8,
+    "courses": 6,
+    "lessons": 18,
+    "posts": 11,
+    "viewEvents": 65,
+    "searchEvents": 3,
+    "usersWithProfiles": 1,
+    "contentItems": 6,
+    "datasetRows": 6,
+    "labelCounts": {
+      "0": 4,
+      "1": 2
+    }
+  },
+  "recommendationTrain": {
+    "trained": true,
+    "modelType": "RandomForestClassifier",
+    "samples": 3006,
+    "realSamples": 6,
+    "syntheticUsed": true,
+    "syntheticSamples": 3000,
+    "users": 1,
+    "contentItems": 6,
+    "viewEvents": 65,
+    "searchEvents": 3,
+    "metrics": {
+      "accuracy": 0.91,
+      "precision": 0.893,
+      "recall": 0.913,
+      "f1": 0.903
+    },
+    "featureImportances": [
+      {
+        "feature": "similarityToWeakTopics",
+        "importance": 0.5346
+      },
+      {
+        "feature": "similarityToKnownTopics",
+        "importance": 0.1674
+      },
+      {
+        "feature": "userAccuracy",
+        "importance": 0.0638
+      },
+      {
+        "feature": "textLength",
+        "importance": 0.0457
+      },
+      {
+        "feature": "popularity",
+        "importance": 0.0456
+      },
+      {
+        "feature": "weakTopicsCount",
+        "importance": 0.0421
+      },
+      {
+        "feature": "userAvgDifficulty",
+        "importance": 0.0405
+      },
+      {
+        "feature": "userAnswersCount",
+        "importance": 0.0384
+      },
+      {
+        "feature": "contentTypeValue",
+        "importance": 0.0103
+      },
+      {
+        "feature": "mediaTypeValue",
+        "importance": 0.0103
+      },
+      {
+        "feature": "similarityToSearchHistory",
+        "importance": 0.0008
+      },
+      {
+        "feature": "searchMatchScore",
+        "importance": 0.0006
+      },
+      {
+        "feature": "viewCount",
+        "importance": 0.0
+      }
+    ]
+  },
+  "strongQuizModelMetrics": {
+    "datasetRows": 180,
+    "pairSamples": 1620,
+    "positiveSamples": 180,
+    "negativeSamples": 1440,
+    "answerRanker": {
+      "accuracy": 0.9951,
+      "precision": 0.9778,
+      "recall": 0.9778,
+      "f1": 0.9778,
+      "testSamples": 405
+    },
+    "difficultyPredictor": {
+      "classes": [
+        1,
+        2,
+        3
+      ],
+      "trainingSamples": 180
+    }
+  },
+  "strongQuizExample": {
+    "title": "Тест: Типи машинного навчання",
+    "source": "strong_trained_local_ml_pipeline",
+    "modelDescription": {
+      "dataset": "data/strong_quiz_dataset.jsonl",
+      "answerRanking": "TF-IDF word n-grams + TF-IDF char n-grams + LogisticRegression",
+      "difficultyPrediction": "TF-IDF + RandomForestClassifier",
+      "questionGeneration": "ML-ranked answer selection + controlled question templates"
+    },
+    "modelMetrics": {
+      "datasetRows": 180,
+      "pairSamples": 1620,
+      "positiveSamples": 180,
+      "negativeSamples": 1440,
+      "answerRanker": {
+        "accuracy": 0.9951,
+        "precision": 0.9778,
+        "recall": 0.9778,
+        "f1": 0.9778,
+        "testSamples": 405
+      },
+      "difficultyPredictor": {
+        "classes": [
+          1,
+          2,
+          3
+        ],
+        "trainingSamples": 180
+      }
+    },
+    "statistics": {
+      "sentenceCount": 7,
+      "keywordCount": 20,
+      "topicCount": 2,
+      "questionCount": 5
+    },
+    "keywords": [
+      {
+        "keyword": "Машинне навчання",
+        "score": 1.0
+      },
+      {
+        "keyword": "Машинне навчання",
+        "score": 1.0
+      },
+      {
+        "keyword": "Машинне навчання",
+        "score": 1.0
+      },
+      {
+        "keyword": "Машинне навчання",
+        "score": 1.0
+      },
+      {
+        "keyword": "Машинне навчання",
+        "score": 1.0
+      },
+      {
+        "keyword": "Машинне навчання",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання з учителем",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання з учителем",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання з учителем",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання з учителем",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання з учителем",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання з учителем",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання без учителя",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання без учителя",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання без учителя",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання без учителя",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання без учителя",
+        "score": 1.0
+      },
+      {
+        "keyword": "Навчання без учителя",
+        "score": 1.0
+      },
+      {
+        "keyword": "Класифікація",
+        "score": 1.0
+      },
+      {
+        "keyword": "Класифікація",
+        "score": 1.0
+      }
+    ],
+    "topics": [
+      {
+        "topicId": 0,
+        "title": "Типи машинного навчання",
+        "sentences": [
+          "Машинне навчання — це напрям штучного інтелекту, який дозволяє системам навчатися на основі даних",
+          "Навчання з учителем — це підхід, який використовує розмічені дані з правильними відповідями",
+          "Класифікація — це задача визначення класу об'єкта на основі його ознак",
+          "Регресія — це задача прогнозування числових значень",
+          "Навчання без учителя — це підхід, який шукає закономірності у нерозмічених даних",
+          "Кластеризація — це метод об'єднання схожих об'єктів у групи",
+          "Accuracy — це частка правильних передбачень серед усіх передбачень моделі"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "questionText": "Що таке машинне навчання?",
+        "optionA": "напрям штучного інтелекту, який дозволяє системам навчатися на основі даних",
+        "optionB": "задача прогнозування числових значень",
+        "optionC": "метод об'єднання схожих об'єктів у групи",
+        "optionD": "підхід, який шукає закономірності у нерозмічених даних",
+        "correctOption": "A",
+        "correctAnswerText": "напрям штучного інтелекту, який дозволяє системам навчатися на основі даних",
+        "explanation": "Правильна відповідь: «напрям штучного інтелекту, який дозволяє системам навчатися на основі даних». Вона була вибрана навченою ML-моделлю ранжування відповідей.",
+        "topic": "Типи машинного навчання",
+        "difficulty": 1,
+        "questionOrder": 1,
+        "sourceSentence": "Машинне навчання — це напрям штучного інтелекту, який дозволяє системам навчатися на основі даних",
+        "mlAnswerScore": 0.6281
+      },
+      {
+        "questionText": "Що таке навчання з учителем?",
+        "optionA": "задача визначення класу об'єкта на основі його ознак",
+        "optionB": "метод об'єднання схожих об'єктів у групи",
+        "optionC": "підхід, який шукає закономірності у нерозмічених даних",
+        "optionD": "підхід, який використовує розмічені дані з правильними відповідями",
+        "correctOption": "D",
+        "correctAnswerText": "підхід, який використовує розмічені дані з правильними відповідями",
+        "explanation": "Правильна відповідь: «підхід, який використовує розмічені дані з правильними відповідями». Вона була вибрана навченою ML-моделлю ранжування відповідей.",
+        "topic": "Типи машинного навчання",
+        "difficulty": 1,
+        "questionOrder": 2,
+        "sourceSentence": "Навчання з учителем — це підхід, який використовує розмічені дані з правильними відповідями",
+        "mlAnswerScore": 0.6904
+      },
+      {
+        "questionText": "Що таке класифікація?",
+        "optionA": "підхід, який використовує розмічені дані з правильними відповідями",
+        "optionB": "напрям штучного інтелекту, який дозволяє системам навчатися на основі даних",
+        "optionC": "метод об'єднання схожих об'єктів у групи",
+        "optionD": "задача визначення класу об'єкта на основі його ознак",
+        "correctOption": "D",
+        "correctAnswerText": "задача визначення класу об'єкта на основі його ознак",
+        "explanation": "Правильна відповідь: «задача визначення класу об'єкта на основі його ознак». Вона була вибрана навченою ML-моделлю ранжування відповідей.",
+        "topic": "Типи машинного навчання",
+        "difficulty": 1,
+        "questionOrder": 3,
+        "sourceSentence": "Класифікація — це задача визначення класу об'єкта на основі його ознак",
+        "mlAnswerScore": 0.7817
+      },
+      {
+        "questionText": "Що таке регресія?",
+        "optionA": "підхід, який шукає закономірності у нерозмічених даних",
+        "optionB": "задача прогнозування числових значень",
+        "optionC": "підхід, який використовує розмічені дані з правильними відповідями",
+        "optionD": "метод об'єднання схожих об'єктів у групи",
+        "correctOption": "B",
+        "correctAnswerText": "задача прогнозування числових значень",
+        "explanation": "Правильна відповідь: «задача прогнозування числових значень». Вона була вибрана навченою ML-моделлю ранжування відповідей.",
+        "topic": "Типи машинного навчання",
+        "difficulty": 1,
+        "questionOrder": 4,
+        "sourceSentence": "Регресія — це задача прогнозування числових значень",
+        "mlAnswerScore": 0.8331
+      },
+      {
+        "questionText": "Що таке навчання без учителя?",
+        "optionA": "підхід, який використовує розмічені дані з правильними відповідями",
+        "optionB": "задача прогнозування числових значень",
+        "optionC": "метод об'єднання схожих об'єктів у групи",
+        "optionD": "підхід, який шукає закономірності у нерозмічених даних",
+        "correctOption": "D",
+        "correctAnswerText": "підхід, який шукає закономірності у нерозмічених даних",
+        "explanation": "Правильна відповідь: «підхід, який шукає закономірності у нерозмічених даних». Вона була вибрана навченою ML-моделлю ранжування відповідей.",
+        "topic": "Типи машинного навчання",
+        "difficulty": 2,
+        "questionOrder": 5,
+        "sourceSentence": "Навчання без учителя — це підхід, який шукає закономірності у нерозмічених даних",
+        "mlAnswerScore": 0.7523
+      }
+    ],
+    "error": null
+  },
+  "quizQualitySummary": [
+    {
+      "topic": "Типи машинного навчання",
+      "status": "CHECK",
+      "elapsedMs": 3224.89,
+      "requestedQuestions": 5,
+      "actualQuestions": 5,
+      "sentenceCount": 7,
+      "keywordCount": 20,
+      "topicCount": 2,
+      "qualityPercent": 98.18,
+      "issues": "short_question_text",
+      "resultFile": "chapter4_test_results\\quiz_quality\\1_типи_машинного_навчання.json"
+    },
+    {
+      "topic": "Нейронні мережі",
+      "status": "PASS",
+      "elapsedMs": 350.94,
+      "requestedQuestions": 5,
+      "actualQuestions": 5,
+      "sentenceCount": 7,
+      "keywordCount": 20,
+      "topicCount": 2,
+      "qualityPercent": 100.0,
+      "issues": "",
+      "resultFile": "chapter4_test_results\\quiz_quality\\2_нейроннi_мережi.json"
+    },
+    {
+      "topic": "Рекомендаційні системи",
+      "status": "PASS",
+      "elapsedMs": 807.52,
+      "requestedQuestions": 5,
+      "actualQuestions": 5,
+      "sentenceCount": 7,
+      "keywordCount": 20,
+      "topicCount": 2,
+      "qualityPercent": 100.0,
+      "issues": "",
+      "resultFile": "chapter4_test_results\\quiz_quality\\3_рекомендацiйнi_системи.json"
+    },
+    {
+      "topic": "Метрики якості моделей",
+      "status": "CHECK",
+      "elapsedMs": 445.19,
+      "requestedQuestions": 5,
+      "actualQuestions": 5,
+      "sentenceCount": 7,
+      "keywordCount": 20,
+      "topicCount": 2,
+      "qualityPercent": 98.18,
+      "issues": "short_question_text",
+      "resultFile": "chapter4_test_results\\quiz_quality\\4_метрики_якостi_моделей.json"
+    }
+  ],
+  "apiTestSummary": {
+    "baseUrl": "http://127.0.0.1:6060",
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "results": [
+      {
+        "testName": "Перевірка доступності ML-сервера",
+        "status": "PASS",
+        "method": "GET",
+        "path": "/health",
+        "elapsedMs": 38.42,
+        "response": {
+          "ok": true,
+          "service": "studdy-ml-server"
+        }
+      },
+      {
+        "testName": "Перевірка наявності даних для ML-модуля",
+        "status": "PASS",
+        "method": "GET",
+        "path": "/debug-data",
+        "elapsedMs": 752.77,
+        "response": {
+          "answers": 8,
+          "courses": 6,
+          "lessons": 18,
+          "posts": 11,
+          "viewEvents": 65,
+          "searchEvents": 3,
+          "usersWithProfiles": 1,
+          "contentItems": 6,
+          "datasetRows": 6,
+          "labelCounts": {
+            "0": 4,
+            "1": 2
+          }
+        }
+      },
+      {
+        "testName": "Навчання рекомендаційної моделі",
+        "status": "PASS",
+        "method": "POST",
+        "path": "/train",
+        "elapsedMs": 1422.34,
+        "response": {
+          "trained": true,
+          "modelType": "RandomForestClassifier",
+          "samples": 3006,
+          "realSamples": 6,
+          "syntheticUsed": true,
+          "syntheticSamples": 3000,
+          "users": 1,
+          "contentItems": 6,
+          "viewEvents": 65,
+          "searchEvents": 3,
+          "metrics": {
+            "accuracy": 0.91,
+            "precision": 0.893,
+            "recall": 0.913,
+            "f1": 0.903
+          },
+          "featureImportances": [
+            {
+              "feature": "similarityToWeakTopics",
+              "importance": 0.5346
+            },
+            {
+              "feature": "similarityToKnownTopics",
+              "importance": 0.1674
+            },
+            {
+              "feature": "userAccuracy",
+              "importance": 0.0638
+            },
+            {
+              "feature": "textLength",
+              "importance": 0.0457
+            },
+            {
+              "feature": "popularity",
+              "importance": 0.0456
+            },
+            {
+              "feature": "weakTopicsCount",
+              "importance": 0.0421
+            },
+            {
+              "feature": "userAvgDifficulty",
+              "importance": 0.0405
+            },
+            {
+              "feature": "userAnswersCount",
+              "importance": 0.0384
+            },
+            {
+              "feature": "contentTypeValue",
+              "importance": 0.0103
+            },
+            {
+              "feature": "mediaTypeValue",
+              "importance": 0.0103
+            },
+            {
+              "feature": "similarityToSearchHistory",
+              "importance": 0.0008
+            },
+            {
+              "feature": "searchMatchScore",
+              "importance": 0.0006
+            },
+            {
+              "feature": "viewCount",
+              "importance": 0.0
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
